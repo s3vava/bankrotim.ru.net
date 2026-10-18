@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Расчёт стоимости банкротства</title>
 <meta name="theme-color" content="#ffffff">
+<link rel="icon" href="calc_ico.ico" sizes="128x128" type="image/x-icon">
+<link rel="icon" href="calc_ico.png" sizes="512x512" type="image/png">
+<link rel="apple-touch-icon" href="calc_ico.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap&subset=cyrillic" rel="stylesheet">
@@ -126,7 +129,7 @@ tr.sum td{font-weight:800}
     <h1>Шаг 1. Ваши долги</h1>
     <div class="f">
       <label class="lbl" for="debt">Укажите общую сумму долгов в рублях без учёта пеней и штрафов</label>
-      <input type="text" id="debt" inputmode="numeric" autocomplete="off" placeholder="1 000 000">
+      <input type="text" id="debt" inputmode="numeric" autocomplete="off">
       <div class="hint" id="debtFmt"></div>
     </div>
     <button type="button" class="link" data-dlg="dlgCall">Затрудняетесь рассчитать свои долги?</button>
@@ -139,11 +142,11 @@ tr.sum td{font-weight:800}
     <h1>Шаг 2. Ваши кредиторы</h1>
     <div class="f">
       <div class="lbl"><label for="credTotal">Общее количество кредиторов</label><button type="button" class="info" data-tip="Банки, МФО, физлица, налоговая, ЖКХ — все, кому вы должны.">i</button></div>
-      <input type="number" id="credTotal" inputmode="numeric" min="0" placeholder="0">
+      <input type="number" id="credTotal" inputmode="numeric" min="0">
     </div>
     <div class="f">
       <div class="lbl"><label for="credNon">Количество кредиторов — не банков и не МФО</label><button type="button" class="info" data-tip="Например: налоговая, ЖКХ, физические лица, организации.">i</button></div>
-      <input type="number" id="credNon" inputmode="numeric" min="0" placeholder="0">
+      <input type="number" id="credNon" inputmode="numeric" min="0">
     </div>
     <div class="f">
       <div class="lbl">Есть ли долги, которые возникли в результате совершения преступления?<button type="button" class="info" data-tip="Например, ущерб по приговору суда или штрафы по уголовному делу.">i</button></div>
@@ -170,8 +173,8 @@ tr.sum td{font-weight:800}
       <button type="button" class="link" id="geoBtn">Определить по местоположению</button>
     </div>
     <div class="f">
-      <div class="lbl"><label for="age">Ваш возраст</label><button type="button" class="info" data-tip="Полных лет на сегодня. Допустимо от 18 до 80 лет.">i</button></div>
-      <input type="number" id="age" inputmode="numeric" min="18" max="80" placeholder="25">
+      <div class="lbl"><label for="age">Ваш возраст</label><button type="button" class="info" data-tip="Полных лет на сегодня.">i</button></div>
+      <input type="number" id="age" inputmode="numeric">
     </div>
     <div class="f">
       <div class="lbl">Пол</div>
@@ -187,7 +190,7 @@ tr.sum td{font-weight:800}
     </div>
     <div class="f">
       <div class="lbl"><label for="income">Среднемесячный доход, ₽</label><button type="button" class="info" data-tip="Средний официальный и неофициальный доход за месяц после вычета налогов.">i</button></div>
-      <input type="number" id="income" inputmode="numeric" min="0" placeholder="0">
+      <input type="number" id="income" inputmode="numeric" min="0">
     </div>
     <div class="f">
       <div class="lbl">Количество детей до 18 лет</div>
@@ -324,7 +327,7 @@ const GFORM = {
 const SCRIPT_URL = '';
 
 /* ========= Яндекс Метрика ========= */
-const METRIKA_ID = 113668167; // номер счётчика
+const METRIKA_ID = 0; // номер счётчика
 if (METRIKA_ID) {
   (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};m[i].l=1*new Date();k=e.createElement(t);a=e.getElementsByTagName(t)[0];k.async=1;k.src=r;a.parentNode.insertBefore(k,a)})(window,document,'script','https://mc.yandex.ru/metrika/tag.js','ym');
   ym(METRIKA_ID, 'init', {clickmap:true, trackLinks:true, accurateTrackBounce:true, webvisor:true});
@@ -394,7 +397,7 @@ function addItem(kind) {
   el.innerHTML = `<div class="ititle">${S.title} ${count(kind) + 1}</div>` + S.f.map(x => {
     if (x.t === 'select') return `<select data-k="${x.k}" aria-label="${x.l}">${x.o.map(o => `<option>${o}</option>`).join('')}</select>`;
     if (x.t === 'check') return `<label class="opt chk"><input type="checkbox" data-k="${x.k}"><span>${x.l}</span></label>`;
-    return `<div><div class="fl">${x.l}</div><input type="number" data-k="${x.k}" inputmode="decimal" step="any" min="0"${x.max ? ` max="${x.max}"` : ''} placeholder="${x.p}"></div>`;
+    return `<div><div class="fl">${x.l}</div><input type="number" data-k="${x.k}" inputmode="decimal" step="any" min="0"${x.max ? ` max="${x.max}"` : ''}></div>`;
   }).join('');
   $('#list-' + kind).append(el);
   $(`[data-del="${kind}"]`).hidden = false;
@@ -529,7 +532,7 @@ function initPhone(el, onChange) {
 
 /* ========= Отправка данных (форма / Apps Script) ========= */
 const SESSION = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : Date.now() + '-' + Math.random().toString(36).slice(2);
-let discountPhone = '', lastHash = '';
+let discountPhone = '', lastHash = '', formSent = false;
 function send(obj) {
   obj.session = SESSION;
   if (GFORM.action) {
@@ -559,7 +562,7 @@ function answers() {
 /* Вызывается при каждом показе результата: если ответы изменились — запись обновляется */
 function submitForm() {
   const a = answers(), h = JSON.stringify(a);
-  if (h === lastHash) return; lastHash = h; send(a); goal('form_sent');
+  if (h === lastHash) return; lastHash = h; send(a); goal(formSent ? 'form_updated' : 'form_sent'); formSent = true;
 }
 $('#callSend').addEventListener('click', () => {
   send({callbackPhone: phoneE164($('#callPhone')), debt: debtEl.value});
@@ -574,7 +577,7 @@ updDisc();
 discBtn.addEventListener('click', () => {
   discountPhone = discChk.checked ? phoneE164(discPh) : ''; lastHash = ''; submitForm();
   discOk.textContent = discountPhone ? 'Готово! Отправим промокод в СМС на ' + discPh.value + '.' : 'Заявка отправлена. Спасибо!';
-  discOk.hidden = false; discBtn.disabled = true; goal('lead_sent');
+  discOk.hidden = false; discBtn.disabled = true; goal(discountPhone ? 'lead_sent_phone' : 'lead_sent_nophone');
 });
 
 /* ========= Валидация и стоп-условия ========= */
@@ -585,7 +588,7 @@ const VALID = {
     if (t === '' || +t < 1) return 'Укажите количество кредиторов';
     if (+n > +t) return 'Кредиторов-не банков и не МФО не может быть больше общего числа'; return ''; },
   3: () => { if (!REGIONS.includes(regEl.value)) return 'Выберите регион из списка';
-    const a = +$('#age').value; if (!(a >= 18 && a <= 80)) return 'Возраст должен быть от 18 до 80 лет';
+    const av = $('#age').value, a = +av; if (av === '') return 'Укажите возраст'; if (a < 18) return 'Вам должно быть от 18 лет'; if (a > 80) return 'Проверьте правильность возраста';
     if ($('#income').value === '') return 'Укажите среднемесячный доход (если дохода нет — 0)'; return ''; },
   4: () => ['property', 'ooo', 'debtor'].every(itemsOk) ? '' : 'Заполните все поля в добавленных пунктах (доля ООО — от 0.01 до 100)',
   5: () => itemsOk('alien') ? '' : 'Заполните все поля в добавленных пунктах'
