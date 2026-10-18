@@ -241,17 +241,17 @@ tr.sum td{font-weight:800}
     <div class="note">Рассчитанная стоимость услуг конечная и включает все расходы (при условии, что вы верно заполнили анкету).<br><br>Остались вопросы по расчёту или цена кажется необоснованной — свяжитесь с нами по бесплатному телефону <a href="tel:88003338913">8 (800) 333-89-13</a>.</div>
     <div class="total" id="total"></div>
     <div class="disc">
-      <label class="opt chk"><input type="checkbox" id="discChk"><span>Хочу получить скидку</span></label>
-      <div id="discBox" hidden>
+      <label class="opt chk"><input type="checkbox" id="discChk" checked><span>Хочу получить скидку</span></label>
+      <div id="discBox">
         <input type="text" id="discPhone" inputmode="numeric" autocomplete="off" aria-label="Номер телефона">
         <div class="hint">Отправим промокод в СМС на номер.</div>
         <label class="opt chk"><input type="checkbox" id="discConsent"><span>Согласен на обработку персональных данных</span></label>
         <button type="button" class="link" data-dlg="dlgPd">Политика обработки персональных данных</button>
-        <button type="button" class="btn" id="discSend" disabled>Получить промокод</button>
-        <div class="okmsg" id="discOk" hidden></div>
       </div>
+      <div class="okmsg" id="discOk" hidden style="margin-top:.6rem"></div>
     </div>
-    <div class="nav"><button type="button" class="btn back" data-prev aria-label="Назад">‹</button><button type="button" class="btn" id="restart">Рассчитать заново</button></div>
+    <div class="nav"><button type="button" class="btn back" data-prev aria-label="Назад">‹</button><button type="button" class="btn" id="discSend" disabled>Отправить</button></div>
+    <button type="button" class="link" id="restart" style="margin-top:.6rem">Рассчитать заново</button>
   </section>
 
   <!-- СТОП -->
@@ -504,15 +504,14 @@ function render() {
   $('#total').textContent = 'Итого: ' + fmt(total);
 }
 
-/* ========= Телефон: маска +79 (XX) XXX-XX-XX, только цифры, без вставки ========= */
-const PH0 = '+79 (';
-const fmtPhone = u => { let r = PH0 + u.slice(0, 2); if (u.length > 2) r += ') ' + u.slice(2, 5); if (u.length > 5) r += '-' + u.slice(5, 7); if (u.length > 7) r += '-' + u.slice(7, 9); return r; };
-const phoneDigits = el => { const d = el.value.replace(/\D/g, ''); return d.startsWith('79') ? d.slice(2, 11) : ''; };
-const phoneValid = el => phoneDigits(el).length === 9;
-const phoneE164 = el => '+79' + phoneDigits(el);
+/* ========= Телефон: маска +7(XXX)XXX-XX-XX, первая цифра 9 уже стоит, только цифры, без вставки ========= */
+const fmtPhone = u => { let r = '+7(' + u.slice(0, 3); if (u.length > 3) r += ')' + u.slice(3, 6); if (u.length > 6) r += '-' + u.slice(6, 8); if (u.length > 8) r += '-' + u.slice(8, 10); return r; };
+const phoneDigits = el => { const d = el.value.replace(/\D/g, ''); return d.startsWith('79') ? d.slice(1, 11) : '9'; };
+const phoneValid = el => phoneDigits(el).length === 10;
+const phoneE164 = el => '+7' + phoneDigits(el);
 function initPhone(el, onChange) {
   const toEnd = () => { const n = el.value.length; try { el.setSelectionRange(n, n); } catch (e) {} };
-  el.value = PH0;
+  el.value = fmtPhone('9');
   el.addEventListener('input', () => { el.value = fmtPhone(phoneDigits(el)); toEnd(); onChange && onChange(); });
   el.addEventListener('keydown', e => {
     if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !/\d/.test(e.key)) e.preventDefault();
@@ -522,12 +521,11 @@ function initPhone(el, onChange) {
   ['paste', 'drop', 'cut', 'dragstart'].forEach(t => el.addEventListener(t, e => e.preventDefault()));
   ['focus', 'click', 'pointerup', 'select'].forEach(t => el.addEventListener(t, () => setTimeout(toEnd, 0)));
 }
-function bindPhone(i, c, b) {
-  const [inp, chk, btn] = [$(i), $(c), $(b)], upd = () => { btn.disabled = !(phoneValid(inp) && chk.checked); };
+(function () {
+  const inp = $('#callPhone'), chk = $('#callConsent'), btn = $('#callSend');
+  const upd = () => { btn.disabled = !(phoneValid(inp) && chk.checked); };
   initPhone(inp, upd); chk.addEventListener('change', upd);
-}
-bindPhone('#callPhone', '#callConsent', '#callSend');
-bindPhone('#discPhone', '#discConsent', '#discSend');
+})();
 
 /* ========= Отправка данных (форма / Apps Script) ========= */
 const SESSION = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : Date.now() + '-' + Math.random().toString(36).slice(2);
@@ -567,12 +565,16 @@ $('#callSend').addEventListener('click', () => {
   send({callbackPhone: phoneE164($('#callPhone')), debt: debtEl.value});
   $('#callForm').hidden = true; $('#callOk').hidden = false; goal('callback_sent');
 });
-$('#discChk').addEventListener('change', e => { $('#discBox').hidden = !e.target.checked; });
-$('#discSend').addEventListener('click', () => {
-  discountPhone = phoneE164($('#discPhone')); lastHash = ''; submitForm();
-  $('#discPhone').readOnly = true; $('#discConsent').disabled = true; $('#discSend').hidden = true;
-  const ok = $('#discOk'); ok.textContent = 'Готово! Отправим промокод в СМС на ' + $('#discPhone').value + '.'; ok.hidden = false;
-  goal('discount_sent');
+/* Финальная кнопка: при включённой скидке активна только с валидным номером и согласием; при выключенной — всегда */
+const discChk = $('#discChk'), discBtn = $('#discSend'), discPh = $('#discPhone'), discCons = $('#discConsent'), discOk = $('#discOk');
+const updDisc = () => { discBtn.disabled = discChk.checked && !(phoneValid(discPh) && discCons.checked); discOk.hidden = true; };
+initPhone(discPh, updDisc); discCons.addEventListener('change', updDisc);
+discChk.addEventListener('change', () => { $('#discBox').hidden = !discChk.checked; updDisc(); });
+updDisc();
+discBtn.addEventListener('click', () => {
+  discountPhone = discChk.checked ? phoneE164(discPh) : ''; lastHash = ''; submitForm();
+  discOk.textContent = discountPhone ? 'Готово! Отправим промокод в СМС на ' + discPh.value + '.' : 'Заявка отправлена. Спасибо!';
+  discOk.hidden = false; discBtn.disabled = true; goal('lead_sent');
 });
 
 /* ========= Валидация и стоп-условия ========= */
