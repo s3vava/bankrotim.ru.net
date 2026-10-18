@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Расчёт стоимости банкротства</title>
+<meta name="theme-color" content="#ffffff">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap&subset=cyrillic" rel="stylesheet">
+<style>
+:root{
+  --bg:#f6f7f9; --card:#fff; --field:#f1f2f5; --line:#e4e6ec;
+  --text:#14171c; --muted:#5d6572; --accent:#e5384a; --accent-d:#c92b3c; --accent-soft:#fdecee;
+  --r:14px;
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#0e1013; --card:#171a1f; --field:#222630; --line:#2c313b; --text:#f2f4f7; --muted:#a3abb8; --accent:#ff5063; --accent-d:#ff6b7a; --accent-soft:#2a1a1d}
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{font-size:125%;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Manrope",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;line-height:1.45;
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+.wrap{max-width:34rem;margin:0 auto;padding:.9rem .8rem 2rem}
+.top{display:flex;align-items:center;justify-content:space-between;font-size:.8rem;color:var(--muted);font-weight:600;margin:.2rem .2rem .6rem}
+.bar{height:4px;background:var(--line);border-radius:4px;overflow:hidden;margin:0 .2rem 1rem}
+.bar i{display:block;height:100%;width:100%;background:var(--accent);transform-origin:0 50%;transform:scaleX(.2);transition:transform .45s cubic-bezier(.22,1,.36,1)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:1.2rem 1rem 1.1rem;overflow:hidden}
+.step{will-change:transform,opacity}
+.step[hidden]{display:none}
+h1{font-size:1.45rem;line-height:1.2;margin:0 0 1.1rem;font-weight:800;letter-spacing:-.01em}
+.f{margin-bottom:1.1rem}
+.lbl{display:flex;align-items:center;gap:.4rem;font-weight:700;font-size:.92rem;margin-bottom:.45rem}
+input[type=text],input[type=number],input[type=date],select{width:100%;font:inherit;font-size:1rem;color:var(--text);background:var(--field);border:1.5px solid transparent;border-radius:var(--r);padding:.72rem .85rem;min-height:3rem;outline:none;transition:border-color .15s,background .15s;appearance:none;-webkit-appearance:none}
+select{background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 1.15rem) 55%,calc(100% - .8rem) 55%;background-size:.35rem .35rem;background-repeat:no-repeat;padding-right:2rem}
+input:focus,select:focus{border-color:var(--accent);background-color:var(--card)}
+input[type=number]{-moz-appearance:textfield}
+input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none}
+.hint{font-size:.78rem;color:var(--muted);margin-top:.35rem;min-height:1em}
+.opts{display:grid;gap:.45rem}
+.opts.row{grid-template-columns:repeat(auto-fit,minmax(6.5rem,1fr))}
+.opt{position:relative}
+.opt input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+.opt span{display:flex;align-items:center;gap:.6rem;min-height:3rem;padding:.6rem .85rem;background:var(--field);border:1.5px solid transparent;border-radius:var(--r);font-weight:600;font-size:.95rem;transition:border-color .15s,background .15s}
+.opt span::before{content:"";flex:none;width:1.1rem;height:1.1rem;border-radius:50%;border:2px solid var(--muted);transition:border-color .15s,box-shadow .15s,background .15s}
+.opt input:checked+span{border-color:var(--accent);background:var(--accent-soft)}
+.opt input:checked+span::before{border-color:var(--accent);background:var(--accent);box-shadow:inset 0 0 0 3px var(--card)}
+.opt input:focus-visible+span{outline:2px solid var(--accent);outline-offset:2px}
+.opt.chk span::before{border-radius:6px}
+.opt.chk input:checked+span::before{box-shadow:inset 0 0 0 3px var(--accent-soft)}
+.link{background:none;border:0;padding:.4rem 0;font:inherit;font-weight:700;font-size:.92rem;color:var(--accent);cursor:pointer;text-align:left}
+.link:hover{color:var(--accent-d)}
+.info{flex:none;width:1.15rem;height:1.15rem;border-radius:50%;border:0;background:var(--muted);color:var(--card);font-family:inherit;font-size:.7rem;font-weight:700;line-height:1;cursor:pointer;display:inline-grid;place-items:center;padding:0}
+.tip{font-size:.82rem;color:var(--muted);background:var(--field);border-radius:var(--r);padding:.6rem .75rem;margin:-.1rem 0 .6rem}
+.sec{padding:1rem 0;border-top:1px solid var(--line)}
+.sec:first-of-type{border-top:0;padding-top:0}
+.items{display:grid;gap:.5rem;margin-bottom:.2rem}
+.items:empty{display:none}
+.item{display:grid;gap:.55rem;margin-bottom:.9rem}
+.ititle{font-weight:700;font-size:.9rem}
+.fl{font-weight:700;font-size:.88rem;margin-bottom:.35rem}
+.acts{display:grid;justify-items:start}
+.acts .link[hidden]{display:none}
+.stp{display:flex;align-items:center;gap:.6rem}
+.stp button{width:3rem;height:3rem;border-radius:var(--r);border:1.5px solid var(--line);background:var(--field);color:var(--text);font-size:1.4rem;cursor:pointer}
+.stp button:disabled{opacity:.35;cursor:default}
+.stp output{min-width:2.6rem;text-align:center;font-weight:800;font-size:1.3rem}
+.sp{color:var(--muted);font-size:.92rem;margin:0 0 .8rem}
+.foot{margin-top:1.2rem;font-size:.78rem;color:var(--muted);text-align:center}
+.foot .fl2{display:grid;justify-items:center}
+.foot .link{font-size:.8rem;font-weight:600;color:var(--muted);text-decoration:underline}
+.foot summary{cursor:pointer;padding:.5rem;font-weight:600}
+.foot details div{text-align:left;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:.8rem;line-height:1.6}
+dialog{width:min(92vw,34rem);max-height:80vh;border:0;border-radius:20px;padding:1.2rem;background:var(--card);color:var(--text);font-size:.85rem}
+dialog::backdrop{background:rgba(0,0,0,.45)}
+dialog h2{margin:0 0 .8rem;font-size:1.1rem}
+dialog .btn{width:100%;flex:none;margin-top:.6rem}
+#cookie{position:fixed;left:.6rem;right:.6rem;bottom:calc(.6rem + env(safe-area-inset-bottom));max-width:34rem;margin:0 auto;z-index:20;background:var(--text);color:var(--bg);border-radius:18px;padding:.9rem;font-size:.78rem;display:flex;gap:.8rem;align-items:center;transform:translate3d(0,140%,0);opacity:0;visibility:hidden;transition:transform .4s cubic-bezier(.22,1,.36,1),opacity .3s,visibility 0s .4s}
+#cookie.on{transform:none;opacity:1;visibility:visible;transition-delay:0s}
+#cookie button.ln{background:none;border:0;padding:0;color:inherit;font:inherit;text-decoration:underline;cursor:pointer}
+#cookie .ckb{flex:none;min-height:2.6rem;padding:0 1.2rem;border:0;border-radius:12px;background:var(--accent);color:#fff;font-family:inherit;font-size:.95rem;font-weight:700;cursor:pointer}
+.err{color:var(--accent);font-size:.85rem;font-weight:600;min-height:1.2em;margin:.2rem 0 .6rem}
+.nav{display:flex;gap:.5rem;margin-top:.4rem}
+.btn{flex:1;min-height:3.1rem;border-radius:var(--r);border:1.5px solid var(--accent);background:var(--accent);color:#fff;font-family:inherit;font-size:1rem;font-weight:700;cursor:pointer;transition:background .15s,transform .1s}
+.btn:active{transform:scale(.985)}
+.btn:hover{background:var(--accent-d)}
+.btn.back{flex:none;width:3.1rem;background:transparent;color:var(--accent);font-size:1.3rem;line-height:1}
+.btn.back:hover{background:var(--accent-soft)}
+button:focus-visible,.ac li:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.reg{position:relative}
+.ac{position:absolute;z-index:5;left:0;right:0;top:100%;margin:.25rem 0 0;padding:.25rem;list-style:none;background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:0 12px 30px rgba(0,0,0,.14);max-height:14rem;overflow:auto}
+.ac li{padding:.6rem .7rem;border-radius:10px;cursor:pointer;font-size:.95rem}
+.ac li[aria-selected=true],.ac li:hover{background:var(--accent-soft)}
+.ac b{color:var(--accent)}
+.plan{font-size:.9rem;margin-bottom:.8rem;font-weight:600}
+.plan b{color:var(--accent)}
+table{width:100%;border-collapse:collapse;font-size:.9rem}
+th{text-align:left;color:var(--muted);font-weight:600;font-size:.78rem;padding:.4rem .3rem .5rem}
+td{padding:.6rem .3rem;border-top:1px solid var(--line);vertical-align:top}
+td:nth-child(2){white-space:nowrap;font-weight:700}
+td:nth-child(3){color:var(--muted);font-size:.8rem}
+tr.sum td{font-weight:800}
+.note{margin:1rem 0;padding:.8rem .9rem;border-left:3px solid var(--accent);background:var(--field);border-radius:0 var(--r) var(--r) 0;font-size:.8rem;color:var(--muted)}
+.note a{color:var(--accent);font-weight:700;text-decoration:none;white-space:nowrap}
+.total{font-size:1.9rem;font-weight:800;letter-spacing:-.02em;margin:.6rem 0 .8rem}
+[hidden]{display:none!important}
+.btn:disabled{opacity:.45;cursor:default;transform:none}
+.btn:disabled:hover{background:var(--accent)}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn.ghost:hover{background:var(--accent-soft)}
+.disc{margin:.2rem 0 1rem}
+#discBox,#callForm{display:grid;gap:.6rem}
+#discBox{margin-top:.7rem}
+.okmsg{background:var(--accent-soft);border-radius:var(--r);padding:.7rem .85rem;font-size:.85rem;font-weight:600}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><span id="stepLabel">Шаг 1 из 5</span><span>Расчёт стоимости</span></div>
+  <div class="bar"><i id="bar"></i></div>
+  <div class="card"><div id="stage">
+
+  <!-- ШАГ 1 -->
+  <section class="step" data-step="1">
+    <h1>Шаг 1. Ваши долги</h1>
+    <div class="f">
+      <label class="lbl" for="debt">Укажите общую сумму долгов в рублях без учёта пеней и штрафов</label>
+      <input type="text" id="debt" inputmode="numeric" autocomplete="off" placeholder="1 000 000">
+      <div class="hint" id="debtFmt"></div>
+    </div>
+    <button type="button" class="link" data-dlg="dlgCall">Затрудняетесь рассчитать свои долги?</button>
+    <div class="err"></div>
+    <div class="nav"><button type="button" class="btn" data-next>Продолжить</button></div>
+  </section>
+
+  <!-- ШАГ 2 -->
+  <section class="step" data-step="2" hidden>
+    <h1>Шаг 2. Ваши кредиторы</h1>
+    <div class="f">
+      <div class="lbl"><label for="credTotal">Общее количество кредиторов</label><button type="button" class="info" data-tip="Банки, МФО, физлица, налоговая, ЖКХ — все, кому вы должны.">i</button></div>
+      <input type="number" id="credTotal" inputmode="numeric" min="0" placeholder="0">
+    </div>
+    <div class="f">
+      <div class="lbl"><label for="credNon">Количество кредиторов — не банков и не МФО</label><button type="button" class="info" data-tip="Например: налоговая, ЖКХ, физические лица, организации.">i</button></div>
+      <input type="number" id="credNon" inputmode="numeric" min="0" placeholder="0">
+    </div>
+    <div class="f">
+      <div class="lbl">Есть ли долги, которые возникли в результате совершения преступления?<button type="button" class="info" data-tip="Например, ущерб по приговору суда или штрафы по уголовному делу.">i</button></div>
+      <div class="opts row" data-radio="crime" data-opts="yes:Да|no:Нет" data-def="no"></div>
+    </div>
+    <div class="f">
+      <div class="lbl">Признавались ли Вы банкротом в течение 5 последних лет?</div>
+      <div class="opts row" data-radio="bankrupt5" data-opts="yes:Да|no:Нет" data-def="no"></div>
+    </div>
+    <div class="err"></div>
+    <div class="nav"><button type="button" class="btn back" data-prev aria-label="Назад">‹</button><button type="button" class="btn" data-next>Продолжить</button></div>
+  </section>
+
+  <!-- ШАГ 3 -->
+  <section class="step" data-step="3" hidden>
+    <h1>Шаг 3. О вас</h1>
+    <div class="f">
+      <label class="lbl" for="region">Регион постоянной регистрации</label>
+      <div class="reg">
+        <input type="text" id="region" autocomplete="off" placeholder="Начните вводить название" role="combobox" aria-expanded="false" aria-controls="acList">
+        <ul class="ac" id="acList" role="listbox" hidden></ul>
+      </div>
+      <div class="hint" id="regHint"></div>
+      <button type="button" class="link" id="geoBtn">Определить по местоположению</button>
+    </div>
+    <div class="f">
+      <div class="lbl"><label for="age">Ваш возраст</label><button type="button" class="info" data-tip="Полных лет на сегодня. Допустимо от 18 до 80 лет.">i</button></div>
+      <input type="number" id="age" inputmode="numeric" min="18" max="80" placeholder="25">
+    </div>
+    <div class="f">
+      <div class="lbl">Пол</div>
+      <div class="opts" data-radio="gender" data-opts="m:Мужской|f:Женский" data-def="m"></div>
+    </div>
+    <div class="f">
+      <div class="lbl">Семейное положение</div>
+      <div class="opts" data-radio="marital" data-opts="married:Состою в браке|single:Холост|widow:Вдова/вдовец" data-def="single"></div>
+    </div>
+    <div class="f">
+      <div class="lbl">Имеется ли инвалидность?</div>
+      <div class="opts" data-radio="disability" data-opts="none:Нет|1:1 группа|2:2 группа|3:3 группа" data-def="none"></div>
+    </div>
+    <div class="f">
+      <div class="lbl"><label for="income">Среднемесячный доход, ₽</label><button type="button" class="info" data-tip="Средний официальный и неофициальный доход за месяц после вычета налогов.">i</button></div>
+      <input type="number" id="income" inputmode="numeric" min="0" placeholder="0">
+    </div>
+    <div class="f">
+      <div class="lbl">Количество детей до 18 лет</div>
+      <div class="stp"><button type="button" id="kMinus" aria-label="Уменьшить" disabled>−</button><output id="kOut" aria-live="polite">0</output><button type="button" id="kPlus" aria-label="Увеличить">+</button></div>
+      <div class="opts" id="spWrap" hidden style="margin-top:.7rem"><label class="opt chk"><input type="checkbox" id="secondParent"><span>Второй родитель финансово не участвует в воспитании ребёнка</span></label></div>
+    </div>
+    <div class="err"></div>
+    <div class="nav"><button type="button" class="btn back" data-prev aria-label="Назад">‹</button><button type="button" class="btn" data-next>Продолжить</button></div>
+  </section>
+
+  <!-- ШАГ 4 -->
+  <section class="step" data-step="4" hidden>
+    <h1>Шаг 4. Имущество и иные активы</h1>
+    <div class="sec">
+      <div class="lbl">Имущество<button type="button" class="info" data-tip="Недвижимость, транспорт, ценные бумаги и другое имущество в вашей собственности.">i</button></div>
+      <div class="items" id="list-property"></div>
+      <div class="acts"><button type="button" class="link" data-add="property">Добавить имущество</button><button type="button" class="link" data-del="property" hidden>Удалить имущество</button></div>
+    </div>
+    <div class="sec">
+      <div class="lbl">ООО, в которых вы являетесь учредителем</div>
+      <div class="items" id="list-ooo"></div>
+      <div class="acts"><button type="button" class="link" data-add="ooo">Добавить ООО</button><button type="button" class="link" data-del="ooo" hidden>Удалить ООО</button></div>
+    </div>
+    <div class="sec">
+      <div class="lbl">Долги перед вами<button type="button" class="info" data-tip="Люди или организации, которые должны вам деньги.">i</button></div>
+      <div class="items" id="list-debtor"></div>
+      <div class="acts"><button type="button" class="link" data-add="debtor">Добавить дебитора</button><button type="button" class="link" data-del="debtor" hidden>Удалить дебитора</button></div>
+    </div>
+    <div class="sec">
+      <div class="lbl">Есть ли у вас инвестиционные брокерские счета?</div>
+      <div class="opts row" data-radio="broker" data-opts="yes:Да|no:Нет" data-def="no"></div>
+    </div>
+    <div class="err"></div>
+    <div class="nav"><button type="button" class="btn back" data-prev aria-label="Назад">‹</button><button type="button" class="btn" data-next>Продолжить</button></div>
+  </section>
+
+  <!-- ШАГ 5 -->
+  <section class="step" data-step="5" hidden>
+    <h1>Шаг 5. Имущество, которое было в вашей собственности в течение 3 последних лет<button type="button" class="info" style="margin-left:.4rem;vertical-align:middle" data-tip="Проданное, подаренное или иным образом переданное другим лицам имущество.">i</button></h1>
+    <div class="items" id="list-alien"></div>
+    <div class="acts"><button type="button" class="link" data-add="alien">Добавить отчуждённое имущество</button><button type="button" class="link" data-del="alien" hidden>Удалить отчуждённое имущество</button></div>
+    <div class="err"></div>
+    <div class="nav"><button type="button" class="btn back" data-prev aria-label="Назад">‹</button><button type="button" class="btn" data-next>Продолжить</button></div>
+  </section>
+
+  <!-- РЕЗУЛЬТАТ -->
+  <section class="step" data-step="6" hidden>
+    <div class="plan" id="plan"></div>
+    <div class="lbl">Персональный график платежей<button type="button" class="info" data-tip="Стоимость фиксируется в договоре. Платежи распределены равномерно.">i</button></div>
+    <table><thead><tr><th>Вид платежа</th><th>Сумма платежа</th><th>Примечание</th></tr></thead><tbody id="sched"></tbody></table>
+    <div class="note">Рассчитанная стоимость услуг конечная и включает все расходы (при условии, что вы верно заполнили анкету).<br><br>Остались вопросы по расчёту или цена кажется необоснованной — свяжитесь с нами по бесплатному телефону <a href="tel:88003338913">8 (800) 333-89-13</a>.</div>
+    <div class="total" id="total"></div>
+    <div class="disc">
+      <label class="opt chk"><input type="checkbox" id="discChk"><span>Хочу получить скидку</span></label>
+      <div id="discBox" hidden>
+        <input type="text" id="discPhone" inputmode="numeric" autocomplete="off" aria-label="Номер телефона">
+        <div class="hint">Отправим промокод в СМС на номер.</div>
+        <label class="opt chk"><input type="checkbox" id="discConsent"><span>Согласен на обработку персональных данных</span></label>
+        <button type="button" class="link" data-dlg="dlgPd">Политика обработки персональных данных</button>
+        <button type="button" class="btn" id="discSend" disabled>Получить промокод</button>
+        <div class="okmsg" id="discOk" hidden></div>
+      </div>
+    </div>
+    <div class="nav"><button type="button" class="btn back" data-prev aria-label="Назад">‹</button><button type="button" class="btn" id="restart">Рассчитать заново</button></div>
+  </section>
+
+  <!-- СТОП -->
+  <section class="step" data-step="stop" hidden>
+    <h1>У Вас не получится освободиться от долгов.</h1>
+    <div id="stopBody"></div>
+    <div class="nav"><button type="button" class="btn back" data-prev aria-label="Назад">‹</button><button type="button" class="btn" data-prev>Изменить ответы</button></div>
+  </section>
+
+  </div></div>
+  <footer class="foot">
+    <div class="fl2">
+      <button type="button" class="link" data-dlg="dlgPrivacy">Политика конфиденциальности</button>
+      <button type="button" class="link" data-dlg="dlgPd">Политика обработки персональных данных</button>
+    </div>
+    <details><summary>Реквизиты организации</summary>
+      <div>ООО «Тест» (тестовые данные)<br>ИНН 7700000000 · КПП 770001001<br>ОГРН 1000000000000<br>Юр. адрес: 101000, г. Москва, ул. Тестовая, д. 1, офис 1<br>Тел.: 8 (800) 333-89-13<br>E-mail: info@example.ru</div>
+    </details>
+  </footer>
+</div>
+
+<dialog id="dlgCall"><h2>Поможем рассчитать долги</h2>
+  <p style="margin:0 0 .8rem;color:var(--muted)">Оставьте номер телефона — мы перезвоним и поможем посчитать сумму долгов.</p>
+  <div id="callForm">
+    <input type="text" id="callPhone" inputmode="numeric" autocomplete="off" aria-label="Номер телефона">
+    <label class="opt chk"><input type="checkbox" id="callConsent"><span>Согласен на обработку персональных данных</span></label>
+    <button type="button" class="link" data-dlg="dlgPd">Политика обработки персональных данных</button>
+    <button type="button" class="btn" id="callSend" disabled>Отправить</button>
+  </div>
+  <div class="okmsg" id="callOk" hidden>Спасибо! Мы скоро перезвоним и поможем рассчитать долги.</div>
+  <button type="button" class="btn ghost" data-close>Закрыть</button></dialog>
+<dialog id="dlgPrivacy"><h2>Политика конфиденциальности</h2><p>Тестовый текст. Здесь будет политика конфиденциальности: какие данные собираются на сайте (в том числе через Яндекс Метрику и cookie), для чего и как долго они хранятся.</p><button type="button" class="btn" data-close>Закрыть</button></dialog>
+<dialog id="dlgPd"><h2>Политика обработки персональных данных</h2><p>Тестовый текст. Здесь будет политика обработки персональных данных в соответствии с 152-ФЗ: оператор, цели, перечень данных, сроки, права субъекта.</p><button type="button" class="btn" data-close>Закрыть</button></dialog>
+<div id="cookie" role="dialog" aria-label="Уведомление о cookie"><span>Мы используем файлы cookie и Яндекс Метрику для работы сайта и анализа посещаемости. Подробнее — в <button type="button" class="ln" data-dlg="dlgPrivacy">политике конфиденциальности</button>.</span><button type="button" class="ckb" id="ckOk">ОК</button></div>
+
+<script>
+'use strict';
+/* ========= ТАРИФИКАЦИЯ (заполняется позже) =========
+   Базовая цена зависит от суммы долга. Каждая выбранная опция добавляет
+   fixed (₽) или percent (% от суммы долга), умножаясь на количество.
+   Пример: PRICING.modifiers['child'] = {type:'fixed', value:5000};
+           PRICING.modifiers['region:Москва'] = {type:'percent', value:2}; */
+const PROP_TYPES = ['Автотранспорт','Дом','Квартира','Нежилое помещение','Акции/ценные бумаги','Оружие','Патенты/товарные знаки','Самоходные транспортные средства'];
+const DEBTOR_TYPES = ['Физическое лицо','Юридическое лицо','Индивидуальный предприниматель'];
+const PRICING = {
+  tiers: [
+    {upTo: 200000,   base: 70000,  name: 'Эконом',       months: 6},
+    {upTo: 1000000,  base: 150000, name: 'Оптимальный',  months: 9},
+    {upTo: Infinity, base: 300000, name: 'Максимальный', months: 12}
+  ],
+  notary: 3000,         // нотариальная доверенность
+  courtDeposit: 25000,  // депозит в суд, делится на 1 и 2 месяц
+  modifiers: {}
+};
+['creditors','creditorsNonBank','gender:m','gender:f','marital:married','marital:single','marital:widow',
+ 'disability:1','disability:2','disability:3','incomeNonZero','child','secondParent','broker:yes',
+ 'property','ooo','oooLiquidation','debtor','debtorCourt','debtorBad','alien',
+ ...PROP_TYPES.map(t => 'propertyType:' + t), ...DEBTOR_TYPES.map(t => 'debtorType:' + t), ...PROP_TYPES.map(t => 'alienType:' + t)
+].forEach(k => PRICING.modifiers[k] = {type: 'fixed', value: 0});
+
+/* ========= Google Форма (все ответы) =========
+   action: https://docs.google.com/forms/d/e/<FORM_ID>/formResponse
+   fields: ключ → "entry.XXXXXXX" (id вопроса). Пустое значение — поле не отправляется. */
+const GFORM = {
+  action: '',
+  fields: {session:'',callbackPhone:'',discount:'',discountPhone:'',debt:'',creditors:'',creditorsNonBank:'',crime:'',bankrupt5:'',region:'',age:'',gender:'',marital:'',disability:'',income:'',children:'',secondParent:'',property:'',ooo:'',debtors:'',broker:'',alienated:'',tier:'',months:'',total:''}
+};
+
+/* Apps Script (обновление записи по session, см. apps-script.gs): вставьте URL веб-приложения */
+const SCRIPT_URL = '';
+
+/* ========= Яндекс Метрика ========= */
+const METRIKA_ID = 0; // номер счётчика
+if (METRIKA_ID) {
+  (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};m[i].l=1*new Date();k=e.createElement(t);a=e.getElementsByTagName(t)[0];k.async=1;k.src=r;a.parentNode.insertBefore(k,a)})(window,document,'script','https://mc.yandex.ru/metrika/tag.js','ym');
+  ym(METRIKA_ID, 'init', {clickmap:true, trackLinks:true, accurateTrackBounce:true, webvisor:true});
+}
+const goal = n => { try { if (METRIKA_ID && window.ym) ym(METRIKA_ID, 'reachGoal', n); } catch (e) {} };
+
+const $ = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => [...r.querySelectorAll(s)];
+const fmt = n => Math.round(n).toLocaleString('ru-RU') + ' ₽';
+const state = {debt: 0};
+
+/* ========= Радио-группы ========= */
+$$('[data-radio]').forEach(g => {
+  const name = g.dataset.radio, def = g.dataset.def;
+  g.innerHTML = g.dataset.opts.split('|').map(o => {
+    const [v, l] = o.split(':');
+    return `<label class="opt"><input type="radio" name="${name}" value="${v}"${v===def?' checked':''}><span>${l}</span></label>`;
+  }).join('');
+});
+const val = n => ($(`input[name="${n}"]:checked`) || {}).value;
+
+/* ========= Подсказки ========= */
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-tip]');
+  if (!t) return;
+  const host = t.closest('.lbl, h1') || t;
+  const next = host.nextElementSibling;
+  if (next && next.classList.contains('tip') && next._src === t) { next.remove(); return; }
+  $$('.tip').forEach(x => x.remove());
+  const d = document.createElement('div');
+  d.className = 'tip'; d.textContent = t.dataset.tip; d._src = t;
+  host.after(d);
+});
+
+/* ========= Сумма долга ========= */
+const debtEl = $('#debt');
+debtEl.addEventListener('input', () => {
+  debtEl.value = debtEl.value.replace(/\D/g, '').slice(0, 12);
+  $('#debtFmt').textContent = debtEl.value ? fmt(+debtEl.value) : '';
+});
+
+/* ========= Дети (0–10) ========= */
+let kids = 0;
+const kOut = $('#kOut'), kM = $('#kMinus'), kP = $('#kPlus');
+function setKids(n) {
+  kids = Math.max(0, Math.min(10, n)); kOut.textContent = kids;
+  kM.disabled = kids === 0; kP.disabled = kids === 10;
+  $('#spWrap').hidden = kids === 0; if (!kids) $('#secondParent').checked = false;
+}
+kM.onclick = () => setKids(kids - 1); kP.onclick = () => setKids(kids + 1);
+
+/* ========= Динамические списки ========= */
+const PROP_F = [{k:'type', t:'select', o:PROP_TYPES, l:'Тип имущества'}, {k:'cost', t:'number', l:'Стоимость, ₽', p:'Сумма в рублях'}];
+const SCHEMAS = {
+  property: {title:'Имущество', f:PROP_F},
+  alien:    {title:'Имущество', f:PROP_F},
+  ooo:      {title:'ООО', f:[{k:'share', t:'number', l:'Доля, в %', p:'От 0.01 до 100', max:100}, {k:'book', t:'number', l:'Балансовая стоимость, ₽', p:'Сумма в рублях'}, {k:'liq', t:'check', l:'Находится в стадии ликвидации'}]},
+  debtor:   {title:'Дебитор', f:[{k:'type', t:'select', o:DEBTOR_TYPES, l:'Тип дебитора'}, {k:'sum', t:'number', l:'Сумма долга, ₽', p:'Сумма в рублях'}, {k:'court', t:'check', l:'Решение суда по долгу'}, {k:'bad', t:'check', l:'Безнадёжный долг'}]}
+};
+const count = k => $$('#list-' + k + ' .item').length;
+const items = kind => $$('#list-' + kind + ' .item').map(el => {
+  const o = {}; $$('[data-k]', el).forEach(i => o[i.dataset.k] = i.type === 'checkbox' ? i.checked : i.value); return o;
+});
+function addItem(kind) {
+  const S = SCHEMAS[kind], el = document.createElement('div');
+  el.className = 'item';
+  el.innerHTML = `<div class="ititle">${S.title} ${count(kind) + 1}</div>` + S.f.map(x => {
+    if (x.t === 'select') return `<select data-k="${x.k}" aria-label="${x.l}">${x.o.map(o => `<option>${o}</option>`).join('')}</select>`;
+    if (x.t === 'check') return `<label class="opt chk"><input type="checkbox" data-k="${x.k}"><span>${x.l}</span></label>`;
+    return `<div><div class="fl">${x.l}</div><input type="number" data-k="${x.k}" inputmode="decimal" step="any" min="0"${x.max ? ` max="${x.max}"` : ''} placeholder="${x.p}"></div>`;
+  }).join('');
+  $('#list-' + kind).append(el);
+  $(`[data-del="${kind}"]`).hidden = false;
+}
+document.addEventListener('click', e => {
+  const a = e.target.closest('[data-add]'); if (a) addItem(a.dataset.add);
+  const d = e.target.closest('[data-del]');
+  if (d) { const k = d.dataset.del, last = $$('#list-' + k + ' .item').pop(); if (last) last.remove(); d.hidden = !count(k); }
+});
+
+/* ========= Регионы ========= */
+const REGIONS = ['Республика Адыгея','Республика Алтай','Республика Башкортостан','Республика Бурятия','Республика Дагестан','Республика Ингушетия','Кабардино-Балкарская Республика','Республика Калмыкия','Карачаево-Черкесская Республика','Республика Карелия','Республика Коми','Республика Крым','Республика Марий Эл','Республика Мордовия','Республика Саха (Якутия)','Республика Северная Осетия — Алания','Республика Татарстан','Республика Тыва','Удмуртская Республика','Республика Хакасия','Чеченская Республика','Чувашская Республика','Алтайский край','Забайкальский край','Камчатский край','Краснодарский край','Красноярский край','Пермский край','Приморский край','Ставропольский край','Хабаровский край','Амурская область','Архангельская область','Астраханская область','Белгородская область','Брянская область','Владимирская область','Волгоградская область','Вологодская область','Воронежская область','Ивановская область','Иркутская область','Калининградская область','Калужская область','Кемеровская область — Кузбасс','Кировская область','Костромская область','Курганская область','Курская область','Ленинградская область','Липецкая область','Магаданская область','Московская область','Мурманская область','Нижегородская область','Новгородская область','Новосибирская область','Омская область','Оренбургская область','Орловская область','Пензенская область','Псковская область','Ростовская область','Рязанская область','Самарская область','Саратовская область','Сахалинская область','Свердловская область','Смоленская область','Тамбовская область','Тверская область','Томская область','Тульская область','Тюменская область','Ульяновская область','Челябинская область','Ярославская область','Москва','Санкт-Петербург','Севастополь','Еврейская автономная область','Ненецкий автономный округ','Ханты-Мансийский автономный округ — Югра','Чукотский автономный округ','Ямало-Ненецкий автономный округ','Донецкая Народная Республика','Луганская Народная Республика','Запорожская область','Херсонская область'];
+const norm = s => s.toLowerCase().replace(/ё/g,'е').replace(/[—–\-()]/g,' ').replace(/\b(республика|область|обл|край|автономный|автономная|округ|город|г|народная|федеральный|города|федерации)\b/g,'').replace(/\s+/g,' ').trim();
+const CORES = REGIONS.map(r => ({r, c: norm(r)}));
+function matchRegion(name) {
+  if (!name) return null;
+  const n = norm(name); if (!n) return null;
+  const hit = CORES.find(x => x.c === n) || CORES.find(x => n.length > 3 && (x.c.includes(n) || n.includes(x.c)) && x.c.length > 3);
+  return hit ? hit.r : null;
+}
+
+const regEl = $('#region'), acEl = $('#acList');
+let acIdx = -1, acItems = [];
+function showAc(q) {
+  const n = norm(q) || q.toLowerCase().trim();
+  acItems = !n ? [] : REGIONS.filter(r => r.toLowerCase().replace(/ё/g,'е').split(/[\s—\-()]+/).some(w => w.startsWith(n)) || norm(r).startsWith(n)).slice(0, 8);
+  acEl.innerHTML = acItems.map((r, i) => `<li role="option" tabindex="-1" data-i="${i}">${r}</li>`).join('');
+  acEl.hidden = !acItems.length; acIdx = -1;
+  regEl.setAttribute('aria-expanded', String(!!acItems.length));
+}
+function pick(r) { regEl.value = r; acEl.hidden = true; $('#regHint').textContent = ''; regEl.setAttribute('aria-expanded','false'); }
+regEl.addEventListener('input', () => showAc(regEl.value));
+regEl.addEventListener('keydown', e => {
+  const li = $$('li', acEl);
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    if (!li.length) return; e.preventDefault();
+    acIdx = (acIdx + (e.key === 'ArrowDown' ? 1 : -1) + li.length) % li.length;
+    li.forEach((x, i) => x.setAttribute('aria-selected', i === acIdx));
+    li[acIdx].scrollIntoView({block: 'nearest'});
+  } else if (e.key === 'Enter' && acIdx >= 0) { e.preventDefault(); pick(acItems[acIdx]); }
+  else if (e.key === 'Escape') acEl.hidden = true;
+});
+acEl.addEventListener('pointerdown', e => { const li = e.target.closest('li'); if (li) { e.preventDefault(); pick(acItems[+li.dataset.i]); } });
+regEl.addEventListener('blur', () => { setTimeout(() => { acEl.hidden = true; const m = REGIONS.find(r => r.toLowerCase() === regEl.value.trim().toLowerCase()); if (m) regEl.value = m; }, 120); });
+
+/* Определение по IP (ipwho.is, на русском) */
+(async () => {
+  try {
+    const r = await fetch('https://ipwho.is/?lang=ru&fields=success,country_code,region');
+    const d = await r.json();
+    if (!d.success || d.country_code !== 'RU') return;
+    const m = matchRegion(d.region);
+    if (m && !regEl.value) { regEl.value = m; $('#regHint').textContent = 'Определён автоматически по IP — проверьте и при необходимости измените.'; }
+  } catch (e) { /* сеть недоступна — ввод вручную */ }
+})();
+
+/* Определение по геолокации (по кнопке) */
+$('#geoBtn').addEventListener('click', () => {
+  const h = $('#regHint');
+  if (!navigator.geolocation) { h.textContent = 'Браузер не поддерживает геолокацию.'; return; }
+  h.textContent = 'Определяем местоположение…';
+  navigator.geolocation.getCurrentPosition(async p => {
+    try {
+      const u = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=5&accept-language=ru&lat=${p.coords.latitude}&lon=${p.coords.longitude}`;
+      const d = await (await fetch(u)).json();
+      const a = d.address || {};
+      const m = matchRegion(a.state || a.region || a.city);
+      if (m) { pick(m); h.textContent = 'Определён по местоположению.'; }
+      else h.textContent = 'Не удалось определить регион РФ. Введите вручную.';
+    } catch (e) { h.textContent = 'Не удалось определить регион. Введите вручную.'; }
+  }, () => { h.textContent = 'Доступ к местоположению не разрешён. Введите регион вручную.'; }, {timeout: 10000});
+});
+
+/* ========= Расчёт ========= */
+function collect() {
+  const q = [], add = (k, n = 1) => n > 0 && q.push([k, n]);
+  add('creditors', +$('#credTotal').value || 0); add('creditorsNonBank', +$('#credNon').value || 0);
+  add('gender:' + val('gender')); add('marital:' + val('marital')); add('disability:' + val('disability'));
+  add('child', kids); if ($('#secondParent').checked) add('secondParent');
+  if ((+$('#income').value || 0) > 0) add('incomeNonZero');
+  items('property').forEach(p => { add('property'); add('propertyType:' + p.type); });
+  items('ooo').forEach(o => { add('ooo'); if (o.liq) add('oooLiquidation'); });
+  items('debtor').forEach(d => { add('debtor'); add('debtorType:' + d.type); if (d.court) add('debtorCourt'); if (d.bad) add('debtorBad'); });
+  items('alien').forEach(p => { add('alien'); add('alienType:' + p.type); });
+  add('broker:' + val('broker')); add('region:' + regEl.value);
+  return q;
+}
+function calc() {
+  const debt = state.debt, tier = PRICING.tiers.find(t => debt <= t.upTo);
+  let total = tier.base;
+  collect().forEach(([k, n]) => {
+    const m = PRICING.modifiers[k]; if (!m) return;
+    total += (m.type === 'percent' ? debt * m.value / 100 : m.value) * n;
+  });
+  return {tier, total: Math.max(Math.round(total / 100) * 100, 0)};
+}
+function render() {
+  const {tier, total} = calc(), N = tier.months, cnt = N - 1;
+  const rest = total - PRICING.notary - PRICING.courtDeposit;
+  const mon = Math.round(rest / cnt / 100) * 100, adv = rest - mon * (cnt - 1), dep = PRICING.courtDeposit / 2;
+  const rows = [['Аванс', adv, 'ежемесячный платёж'], ['Нотариальная доверенность', PRICING.notary, 'при заключении договора'],
+    ['1 месяц', dep, '½ депозита в суд'], ['2 месяц', dep, '½ депозита в суд']];
+  for (let i = 3; i <= N; i++) rows.push([i + ' месяц', mon, 'ежемесячный платёж']);
+  $('#sched').innerHTML = rows.map(r => `<tr><td>${r[0]}</td><td>${fmt(r[1])}</td><td>${r[2]}</td></tr>`).join('') +
+    `<tr class="sum"><td>Всего</td><td>${fmt(total)}</td><td>≈${(total / state.debt * 100).toFixed(2).replace('.', ',')}% от суммы ваших долгов</td></tr>`;
+  $('#plan').innerHTML = `Ваш тарифный план: <b>${tier.name} (${regEl.value})</b>, срок ${N} мес.`;
+  $('#total').textContent = 'Итого: ' + fmt(total);
+}
+
+/* ========= Телефон: маска +79 (XX) XXX-XX-XX, только цифры, без вставки ========= */
+const PH0 = '+79 (';
+const fmtPhone = u => { let r = PH0 + u.slice(0, 2); if (u.length > 2) r += ') ' + u.slice(2, 5); if (u.length > 5) r += '-' + u.slice(5, 7); if (u.length > 7) r += '-' + u.slice(7, 9); return r; };
+const phoneDigits = el => { const d = el.value.replace(/\D/g, ''); return d.startsWith('79') ? d.slice(2, 11) : ''; };
+const phoneValid = el => phoneDigits(el).length === 9;
+const phoneE164 = el => '+79' + phoneDigits(el);
+function initPhone(el, onChange) {
+  const toEnd = () => { const n = el.value.length; try { el.setSelectionRange(n, n); } catch (e) {} };
+  el.value = PH0;
+  el.addEventListener('input', () => { el.value = fmtPhone(phoneDigits(el)); toEnd(); onChange && onChange(); });
+  el.addEventListener('keydown', e => {
+    if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !/\d/.test(e.key)) e.preventDefault();
+    if (e.key === 'ArrowLeft' || e.key === 'Home') e.preventDefault();
+  });
+  el.addEventListener('beforeinput', e => { if (/^insertFrom|^insertReplacement/.test(e.inputType || '')) e.preventDefault(); });
+  ['paste', 'drop', 'cut', 'dragstart'].forEach(t => el.addEventListener(t, e => e.preventDefault()));
+  ['focus', 'click', 'pointerup', 'select'].forEach(t => el.addEventListener(t, () => setTimeout(toEnd, 0)));
+}
+function bindPhone(i, c, b) {
+  const [inp, chk, btn] = [$(i), $(c), $(b)], upd = () => { btn.disabled = !(phoneValid(inp) && chk.checked); };
+  initPhone(inp, upd); chk.addEventListener('change', upd);
+}
+bindPhone('#callPhone', '#callConsent', '#callSend');
+bindPhone('#discPhone', '#discConsent', '#discSend');
+
+/* ========= Отправка данных (форма / Apps Script) ========= */
+const SESSION = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : Date.now() + '-' + Math.random().toString(36).slice(2);
+let discountPhone = '', lastHash = '';
+function send(obj) {
+  obj.session = SESSION;
+  if (GFORM.action) {
+    const b = new URLSearchParams();
+    for (const k in GFORM.fields) if (GFORM.fields[k] && k in obj) b.append(GFORM.fields[k], obj[k]);
+    fetch(GFORM.action, {method: 'POST', mode: 'no-cors', body: b}).catch(() => {});
+  }
+  if (SCRIPT_URL) fetch(SCRIPT_URL, {method: 'POST', mode: 'no-cors', body: new URLSearchParams(obj)}).catch(() => {});
+}
+function answers() {
+  const {tier, total} = calc(), yn = v => v === 'yes' ? 'Да' : 'Нет', m = n => fmt(+n || 0), j = (a, f) => a.map(f).join('; ');
+  return {
+    debt: state.debt, creditors: $('#credTotal').value, creditorsNonBank: $('#credNon').value,
+    crime: yn(val('crime')), bankrupt5: yn(val('bankrupt5')), region: regEl.value, age: $('#age').value,
+    gender: val('gender') === 'm' ? 'Мужской' : 'Женский',
+    marital: {married:'Состою в браке', single:'Холост', widow:'Вдова/вдовец'}[val('marital')],
+    disability: val('disability') === 'none' ? 'Нет' : val('disability') + ' группа', income: $('#income').value,
+    children: kids, secondParent: $('#secondParent').checked ? 'Да' : 'Нет',
+    property: j(items('property'), p => `${p.type}: ${m(p.cost)}`),
+    ooo: j(items('ooo'), o => `доля ${o.share}%, балансовая ${m(o.book)}${o.liq ? ', ликвидация' : ''}`),
+    debtors: j(items('debtor'), d => `${d.type}: ${m(d.sum)}${d.court ? ', решение суда' : ''}${d.bad ? ', безнадёжный' : ''}`),
+    broker: yn(val('broker')), alienated: j(items('alien'), p => `${p.type}: ${m(p.cost)}`),
+    tier: tier.name, months: tier.months, total,
+    discount: discountPhone ? 'Да' : 'Нет', discountPhone
+  };
+}
+/* Вызывается при каждом показе результата: если ответы изменились — запись обновляется */
+function submitForm() {
+  const a = answers(), h = JSON.stringify(a);
+  if (h === lastHash) return; lastHash = h; send(a); goal('form_sent');
+}
+$('#callSend').addEventListener('click', () => {
+  send({callbackPhone: phoneE164($('#callPhone')), debt: debtEl.value});
+  $('#callForm').hidden = true; $('#callOk').hidden = false; goal('callback_sent');
+});
+$('#discChk').addEventListener('change', e => { $('#discBox').hidden = !e.target.checked; });
+$('#discSend').addEventListener('click', () => {
+  discountPhone = phoneE164($('#discPhone')); lastHash = ''; submitForm();
+  $('#discPhone').readOnly = true; $('#discConsent').disabled = true; $('#discSend').hidden = true;
+  const ok = $('#discOk'); ok.textContent = 'Готово! Отправим промокод в СМС на ' + $('#discPhone').value + '.'; ok.hidden = false;
+  goal('discount_sent');
+});
+
+/* ========= Валидация и стоп-условия ========= */
+const itemsOk = k => items(k).every(o => Object.entries(o).every(([f, v]) => typeof v === 'boolean' || f === 'type' || (v !== '' && (f !== 'share' || (+v >= 0.01 && +v <= 100)))));
+const VALID = {
+  1: () => { const v = +debtEl.value; if (!v) return 'Укажите сумму долгов'; state.debt = v; return ''; },
+  2: () => { const t = $('#credTotal').value, n = $('#credNon').value;
+    if (t === '' || +t < 1) return 'Укажите количество кредиторов';
+    if (+n > +t) return 'Кредиторов-не банков и не МФО не может быть больше общего числа'; return ''; },
+  3: () => { if (!REGIONS.includes(regEl.value)) return 'Выберите регион из списка';
+    const a = +$('#age').value; if (!(a >= 18 && a <= 80)) return 'Возраст должен быть от 18 до 80 лет';
+    if ($('#income').value === '') return 'Укажите среднемесячный доход (если дохода нет — 0)'; return ''; },
+  4: () => ['property', 'ooo', 'debtor'].every(itemsOk) ? '' : 'Заполните все поля в добавленных пунктах (доля ООО — от 0.01 до 100)',
+  5: () => itemsOk('alien') ? '' : 'Заполните все поля в добавленных пунктах'
+};
+const STOPS = {
+  crime: 'При наличии долгов, связанных с преступлением, освобождение от долгов не допускается в соответствии с п. 4 ст. 213.28 Федерального закона «О несостоятельности (банкротстве)».',
+  bankrupt5: 'В соответствии с п. 2 ст. 213.28 Федерального закона №127-ФЗ «О несостоятельности (банкротстве)» в течение пяти лет с даты завершения в отношении гражданина процедуры реализации имущества или прекращения производства по делу о банкротстве в ходе такой процедуры дело о его банкротстве не может быть возбуждено по заявлению этого гражданина.'
+};
+const stopReasons = () => ['crime', 'bankrupt5'].filter(k => val(k) === 'yes');
+const STOP = 6;
+
+/* ========= Переходы между экранами ========= */
+const steps = $$('.step'), bar = $('#bar'), label = $('#stepLabel');
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+let cur = 0, busy = false;
+async function go(to) {
+  if (busy || to === cur || to < 0 || to >= steps.length) return;
+  busy = true;
+  const dir = to > cur ? 1 : -1, out = steps[cur], inn = steps[to];
+  $$('.tip').forEach(x => x.remove());
+  if (to === 5) { render(); submitForm(); }
+  if (to === STOP) $('#stopBody').innerHTML = stopReasons().map(k => `<p class="sp">${STOPS[k]}</p>`).join('');
+  if (!reduce) await out.animate(
+    [{opacity: 1, transform: 'translate3d(0,0,0)'}, {opacity: 0, transform: `translate3d(${-dir * 24}px,0,0)`}],
+    {duration: 180, easing: 'cubic-bezier(.4,0,1,1)', fill: 'forwards'}).finished;
+  out.hidden = true; out.getAnimations().forEach(a => a.cancel());
+  inn.hidden = false; window.scrollTo(0, 0);
+  bar.style.transform = `scaleX(${(to === STOP ? 2 : Math.min(to + 1, 5)) / 5})`;
+  label.textContent = to === 5 ? 'Результат' : to === STOP ? 'Расчёт невозможен' : `Шаг ${to + 1} из 5`;
+  goal(to === STOP ? 'stop' : 'step_' + (to + 1));
+  cur = to;
+  if (!reduce) await inn.animate(
+    [{opacity: 0, transform: `translate3d(${dir * 24}px,0,0)`}, {opacity: 1, transform: 'translate3d(0,0,0)'}],
+    {duration: 300, easing: 'cubic-bezier(.22,1,.36,1)'}).finished;
+  busy = false;
+}
+document.addEventListener('click', e => {
+  if (e.target.closest('[data-next]')) {
+    const err = VALID[cur + 1](); $('.err', steps[cur]).textContent = err;
+    if (!err) go(cur === 1 && stopReasons().length ? STOP : cur + 1);
+  } else if (e.target.closest('[data-prev]')) go(cur === STOP ? 1 : cur - 1);
+});
+document.addEventListener('input', () => { const b = $('.err', steps[cur]); if (b && b.textContent) b.textContent = ''; });
+$('#restart').addEventListener('click', () => go(0));
+bar.style.transform = 'scaleX(.2)';
+
+/* ========= Модальные окна и cookie ========= */
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-dlg]'); if (b) $('#' + b.dataset.dlg).showModal();
+  if (e.target.closest('[data-close]')) e.target.closest('dialog').close();
+  else if (e.target.tagName === 'DIALOG') { const r = e.target.getBoundingClientRect(); if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) e.target.close(); }
+});
+const ck = $('#cookie'); let accepted = false;
+try { accepted = localStorage.getItem('ck') === '1'; } catch (e) {}
+if (!accepted) setTimeout(() => ck.classList.add('on'), 700);
+$('#ckOk').addEventListener('click', () => { ck.classList.remove('on'); try { localStorage.setItem('ck', '1'); } catch (e) {} });
+</script>
+</body>
+</html>
