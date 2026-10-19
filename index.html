@@ -239,10 +239,55 @@ tr.sum td{font-weight:800}
   <!-- РЕЗУЛЬТАТ -->
   <section class="step" data-step="6" hidden>
     <div class="plan" id="plan"></div>
-    <div class="lbl">Персональный график платежей<button type="button" class="info" data-tip="Стоимость фиксируется в договоре. Платежи распределены равномерно.">i</button></div>
-    <table><thead><tr><th>Вид платежа</th><th>Сумма платежа</th><th>Примечание</th></tr></thead><tbody id="sched"></tbody></table>
-    <div class="note">Рассчитанная стоимость услуг конечная и включает все расходы (при условии, что вы верно заполнили анкету).<br><br>Остались вопросы по расчёту или цена кажется необоснованной — свяжитесь с нами по бесплатному телефону <a href="tel:88003338913">8 (800) 333-89-13</a>.</div>
+
+    <!-- Тогл семейной акции -->
+    <div style="margin-bottom:.8rem">
+      <label class="opt chk"><input type="checkbox" id="famChk"><span>Семейное банкротство (скидка 10%)</span></label>
+      <div class="hint" style="margin-top:.3rem">Скидка 10% при заключении двух договоров членами семьи в одном календарном месяце. Депозит АУ (25 000 ₽) не дисконтируется.</div>
+    </div>
+
+    <!-- Тогл сохранения жилья -->
+    <div style="margin-bottom:.8rem">
+      <label class="opt chk"><input type="checkbox" id="housingChk"><span>Сохранение единственного жилья (+24 000 ₽)</span></label>
+    </div>
+
+    <!-- Основная таблица расчёта -->
+    <div class="lbl">Детализация расчёта</div>
+    <table><thead><tr><th>Позиция</th><th>Сумма</th><th>Примечание</th></tr></thead><tbody id="sched"></tbody></table>
+
+    <!-- Описание акции -->
+    <div class="note" id="promoNote" hidden>Скидка 10% предоставляется каждому клиенту при условии заключения двух договоров в одном календарном месяце. Заявление подаётся в суд в течение 14 дней при полном пакете документов. Депозит арбитражного управляющего (25 000 ₽) оплачивается отдельно.</div>
+
+    <!-- Информационный блок про нотариуса и депозит -->
+    <div class="note">Дополнительные расходы: нотариальная доверенность — <b>3 000 ₽</b>, депозит арбитражного управляющего — <b>25 000 ₽</b>. Не входят в график платежей, оплачиваются отдельно.<br><br>Рассчитанная стоимость услуг конечная и включает все расходы (при условии, что вы верно заполнили анкету).<br><br>Остались вопросы по расчёту или цена кажется необоснованной — свяжитесь с нами по бесплатному телефону <a href="tel:88003338913">8 (800) 333-89-13</a>.</div>
+
+    <!-- Итого -->
     <div class="total" id="total"></div>
+
+    <!-- Спойлер с акциями 2+1 и 4+2 -->
+    <details style="margin-top:1rem" id="promoDetails">
+      <summary style="cursor:pointer;font-weight:700;padding:.5rem 0">Акции «2+1» и «4+2»</summary>
+
+      <!-- Акция 2+1 -->
+      <div style="margin-top:.8rem">
+        <div class="lbl">Акция «2+1»</div>
+        <div class="hint" style="margin-bottom:.6rem">Оплата 2 месяцев сразу, 1 месяц в конце — бесплатно. Итого: 11 платежей вместо 14.</div>
+        <label class="opt chk" style="margin-bottom:.6rem"><input type="checkbox" id="promo21Fam" checked><span>Применить скидку 10% (семейное)</span></label>
+        <table><thead><tr><th>Месяц</th><th>Сумма</th><th>Статус</th></tr></thead><tbody id="sched21"></tbody></table>
+        <div class="total" id="total21" style="font-size:1.3rem"></div>
+      </div>
+
+      <!-- Акция 4+2 -->
+      <div style="margin-top:1.2rem">
+        <div class="lbl">Акция «4+2»</div>
+        <div class="hint" style="margin-bottom:.6rem">Оплата 4 месяцев сразу, 2 месяца в конце — бесплатно. Итого: 8 платежей вместо 14.</div>
+        <label class="opt chk" style="margin-bottom:.6rem"><input type="checkbox" id="promo42Fam" checked><span>Применить скидку 10% (семейное)</span></label>
+        <table><thead><tr><th>Месяц</th><th>Сумма</th><th>Статус</th></tr></thead><tbody id="sched42"></tbody></table>
+        <div class="total" id="total42" style="font-size:1.3rem"></div>
+      </div>
+    </details>
+
+    <!-- Заявка -->
     <div class="disc">
       <label class="opt chk"><input type="checkbox" id="discChk" checked><span>Хочу получить скидку</span></label>
       <div id="discBox">
@@ -292,35 +337,33 @@ tr.sum td{font-weight:800}
 
 <script>
 'use strict';
-/* ========= ТАРИФИКАЦИЯ (заполняется позже) =========
-   Базовая цена зависит от суммы долга. Каждая выбранная опция добавляет
-   fixed (₽) или percent (% от суммы долга), умножаясь на количество.
-   Пример: PRICING.modifiers['child'] = {type:'fixed', value:5000};
-           PRICING.modifiers['region:Москва'] = {type:'percent', value:2}; */
+/* ========= ТАРИФНАЯ СЕТКА И ДОП. УСЛУГИ ========= */
 const PROP_TYPES = ['Автотранспорт','Дом','Квартира','Нежилое помещение','Акции/ценные бумаги','Оружие','Патенты/товарные знаки','Самоходные транспортные средства'];
 const DEBTOR_TYPES = ['Физическое лицо','Юридическое лицо','Индивидуальный предприниматель'];
-const PRICING = {
-  tiers: [
-    {upTo: 200000,   base: 70000,  name: 'Эконом',       months: 6},
-    {upTo: 1000000,  base: 150000, name: 'Оптимальный',  months: 9},
-    {upTo: Infinity, base: 300000, name: 'Максимальный', months: 12}
-  ],
-  notary: 3000,         // нотариальная доверенность
-  courtDeposit: 25000,  // депозит в суд, делится на 1 и 2 месяц
-  modifiers: {}
+const TERM_MONTHS = 14; // срок рассрочки фиксированно
+const PRICE_SCHEDULE = [
+  {maxDebt: 300000,   basePrice: 68700,  monthlyPayment: 7400, label: 'До 300 000 ₽'},
+  {maxDebt: 500000,   basePrice: 96100,  monthlyPayment: 10800, label: 'До 500 000 ₽'},
+  {maxDebt: 1500000,  basePrice: 131200, monthlyPayment: 14400, label: 'До 1 500 000 ₽'},
+  {maxDebt: 3000000,  basePrice: 156900, monthlyPayment: 16000, label: 'До 3 000 000 ₽'},
+  {maxDebt: 6000000,  basePrice: 216800, monthlyPayment: 22400, label: 'До 6 000 000 ₽'},
+  {maxDebt: 10000000, basePrice: 302400, monthlyPayment: 29600, label: 'До 10 000 000 ₽'},
+  {maxDebt: Infinity, basePrice: 428000, monthlyPayment: 44000, label: 'Более 10 000 000 ₽'}
+];
+const EXTRA_SERVICE_PRICES = {
+  propertyProtection: 40000, // за 1 объект
+  singleHousing: 24000,
+  efrsbPublications: 12000
 };
-['creditors','creditorsNonBank','gender:m','gender:f','marital:married','marital:single','marital:widow',
- 'disability:1','disability:2','disability:3','incomeNonZero','child','secondParent','broker:yes',
- 'property','ooo','oooLiquidation','debtor','debtorCourt','debtorBad','alien',
- ...PROP_TYPES.map(t => 'propertyType:' + t), ...DEBTOR_TYPES.map(t => 'debtorType:' + t), ...PROP_TYPES.map(t => 'alienType:' + t)
-].forEach(k => PRICING.modifiers[k] = {type: 'fixed', value: 0});
+const NOTARY = 3000;
+const COURT_DEPOSIT = 25000;
 
 /* ========= Google Форма (все ответы) =========
    action: https://docs.google.com/forms/d/e/<FORM_ID>/formResponse
    fields: ключ → "entry.XXXXXXX" (id вопроса). Пустое значение — поле не отправляется. */
 const GFORM = {
   action: '',
-  fields: {session:'',callbackPhone:'',discount:'',discountPhone:'',debt:'',creditors:'',creditorsNonBank:'',crime:'',bankrupt5:'',region:'',age:'',gender:'',marital:'',disability:'',income:'',children:'',secondParent:'',property:'',ooo:'',debtors:'',broker:'',alienated:'',tier:'',months:'',total:''}
+  fields: {session:'',callbackPhone:'',discount:'',discountPhone:'',debt:'',creditors:'',creditorsNonBank:'',crime:'',bankrupt5:'',region:'',age:'',gender:'',marital:'',disability:'',income:'',children:'',secondParent:'',property:'',ooo:'',debtors:'',broker:'',alienated:'',tier:'',months:'',total:'',familyDiscount:'',singleHousing:''}
 };
 
 /* Apps Script (обновление записи по session, см. apps-script.gs): вставьте URL веб-приложения */
@@ -472,40 +515,102 @@ $('#geoBtn').addEventListener('click', () => {
 });
 
 /* ========= Расчёт ========= */
-function collect() {
-  const q = [], add = (k, n = 1) => n > 0 && q.push([k, n]);
-  add('creditors', +$('#credTotal').value || 0); add('creditorsNonBank', +$('#credNon').value || 0);
-  add('gender:' + val('gender')); add('marital:' + val('marital')); add('disability:' + val('disability'));
-  add('child', kids); if ($('#secondParent').checked) add('secondParent');
-  if ((+$('#income').value || 0) > 0) add('incomeNonZero');
-  items('property').forEach(p => { add('property'); add('propertyType:' + p.type); });
-  items('ooo').forEach(o => { add('ooo'); if (o.liq) add('oooLiquidation'); });
-  items('debtor').forEach(d => { add('debtor'); add('debtorType:' + d.type); if (d.court) add('debtorCourt'); if (d.bad) add('debtorBad'); });
-  items('alien').forEach(p => { add('alien'); add('alienType:' + p.type); });
-  add('broker:' + val('broker')); add('region:' + regEl.value);
-  return q;
+function calcBase(debt, opts) {
+  const tier = PRICE_SCHEDULE.find(t => debt <= t.maxDebt);
+  const baseMonthlyPayment = tier.monthlyPayment;
+  const basePrice = tier.basePrice;
+  let costDop = EXTRA_SERVICE_PRICES.efrsbPublications; // всегда
+  if (opts.singleHousing) costDop += EXTRA_SERVICE_PRICES.singleHousing;
+  costDop += opts.propertyCount * EXTRA_SERVICE_PRICES.propertyProtection;
+  const totalBase = (baseMonthlyPayment * TERM_MONTHS) + costDop;
+  const famPct = opts.familyDiscount ? 10 : 0;
+  const discountRub = Math.round(totalBase * famPct / 100);
+  const totalAfter = totalBase - discountRub;
+  const finalMonthly = Math.ceil(totalAfter / TERM_MONTHS / 100) * 100;
+  const finalTotal = finalMonthly * TERM_MONTHS;
+  return { tier, basePrice, baseMonthlyPayment, costDop, familyDiscountPercent: famPct, discountPercentRub: discountRub, totalBase, finalMonthlyPayment: finalMonthly, finalTotalStandard: finalTotal };
 }
 function calc() {
-  const debt = state.debt, tier = PRICING.tiers.find(t => debt <= t.upTo);
-  let total = tier.base;
-  collect().forEach(([k, n]) => {
-    const m = PRICING.modifiers[k]; if (!m) return;
-    total += (m.type === 'percent' ? debt * m.value / 100 : m.value) * n;
+  return calcBase(state.debt, {
+    propertyCount: items('property').length,
+    familyDiscount: $('#famChk').checked,
+    singleHousing: $('#housingChk').checked
   });
-  return {tier, total: Math.max(Math.round(total / 100) * 100, 0)};
+}
+/* Генерация графика для акции: promoMode = 'NONE' | '2+1' | '4+2' */
+function generateSchedule(monthly, termMonths, promoMode) {
+  const upfrontMonths = promoMode === '2+1' ? 2 : promoMode === '4+2' ? 4 : 0;
+  const skippedMonths = promoMode === '2+1' ? 1 : promoMode === '4+2' ? 2 : 0;
+  const rows = [];
+  let cumulative = 0;
+  for (let m = 1; m <= termMonths; m++) {
+    let status = 'Ежемесячно', payment = monthly;
+    if (m <= upfrontMonths) { status = 'Оплачено сразу'; payment = monthly; }
+    else if (m > termMonths - skippedMonths) { status = 'Исключён по акции'; payment = 0; }
+    cumulative += payment;
+    rows.push({ month: m, status, payment, cumulative });
+  }
+  const upfrontPayment = monthly * upfrontMonths;
+  const remainingCount = Math.max(0, termMonths - upfrontMonths - skippedMonths);
+  const totalWithPromo = upfrontPayment + (monthly * remainingCount);
+  return { rows, upfrontPayment, remainingCount, totalWithPromo };
 }
 function render() {
-  const {tier, total} = calc(), N = tier.months, cnt = N - 1;
-  const rest = total - PRICING.notary - PRICING.courtDeposit;
-  const mon = Math.round(rest / cnt / 100) * 100, adv = rest - mon * (cnt - 1), dep = PRICING.courtDeposit / 2;
-  const rows = [['Аванс', adv, 'ежемесячный платёж'], ['Нотариальная доверенность', PRICING.notary, 'при заключении договора'],
-    ['1 месяц', dep, '½ депозита в суд'], ['2 месяц', dep, '½ депозита в суд']];
-  for (let i = 3; i <= N; i++) rows.push([i + ' месяц', mon, 'ежемесячный платёж']);
-  $('#sched').innerHTML = rows.map(r => `<tr><td>${r[0]}</td><td>${fmt(r[1])}</td><td>${r[2]}</td></tr>`).join('') +
-    `<tr class="sum"><td>Всего</td><td>${fmt(total)}</td><td>≈${(total / state.debt * 100).toFixed(2).replace('.', ',')}% от суммы ваших долгов</td></tr>`;
-  $('#plan').innerHTML = `Ваш тарифный план: <b>${tier.name} (${regEl.value})</b>, срок ${N} мес.`;
-  $('#total').textContent = 'Итого: ' + fmt(total);
+  const c = calc();
+  const propCount = items('property').length;
+  // Основная таблица расчёта
+  let rows = [
+    ['Тариф', c.tier.label, 'по сумме долга'],
+    ['Базовая стоимость', c.basePrice, 'по прайсу'],
+    ['Базовый платёж/мес', c.baseMonthlyPayment, '₽'],
+  ];
+  if (propCount > 0) {
+    rows.push(['Защита имущества', EXTRA_SERVICE_PRICES.propertyProtection * propCount, propCount + ' × ' + EXTRA_SERVICE_PRICES.propertyProtection.toLocaleString('ru-RU') + ' ₽']);
+  }
+  if ($('#housingChk').checked) {
+    rows.push(['Сохранение жилья', EXTRA_SERVICE_PRICES.singleHousing, 'единственное жильё']);
+  }
+  rows.push(['ЕФРСБ публикации', EXTRA_SERVICE_PRICES.efrsbPublications, 'обязательные']);
+  if (c.familyDiscountPercent > 0) {
+    rows.push(['Скидка «Семья-10%»', c.discountPercentRub, '−' + c.discountPercentRub.toLocaleString('ru-RU') + ' ₽']);
+  }
+  $('#sched').innerHTML = rows.map(r => '<tr><td>' + r[0] + '</td><td>' + fmt(r[1]) + '</td><td>' + r[2] + '</td></tr>').join('') +
+    '<tr class="sum"><td>Итоговый платёж/мес</td><td>' + fmt(c.finalMonthlyPayment) + '</td><td>' + TERM_MONTHS + ' мес.</td></tr>' +
+    '<tr class="sum"><td>Итого за срок</td><td>' + fmt(c.finalTotalStandard) + '</td><td></td></tr>';
+  $('#plan').innerHTML = 'Ваш тарифный план: <b>' + c.tier.label + '</b>, срок ' + TERM_MONTHS + ' мес.';
+  $('#total').textContent = 'Итого: ' + fmt(c.finalTotalStandard);
+  // Описание акции
+  $('#promoNote').hidden = !$('#famChk').checked;
+  // График 2+1
+  const opts21 = {
+    propertyCount: propCount,
+    familyDiscount: $('#promo21Fam').checked,
+    singleHousing: $('#housingChk').checked
+  };
+  const c21 = calcBase(state.debt, opts21);
+  const sched21 = generateSchedule(c21.finalMonthlyPayment, TERM_MONTHS, '2+1');
+  renderScheduleTable('#sched21', sched21.rows, sched21.totalWithPromo);
+  $('#total21').textContent = 'Итого с акцией: ' + fmt(sched21.totalWithPromo);
+  // График 4+2
+  const opts42 = {
+    propertyCount: propCount,
+    familyDiscount: $('#promo42Fam').checked,
+    singleHousing: $('#housingChk').checked
+  };
+  const c42 = calcBase(state.debt, opts42);
+  const sched42 = generateSchedule(c42.finalMonthlyPayment, TERM_MONTHS, '4+2');
+  renderScheduleTable('#sched42', sched42.rows, sched42.totalWithPromo);
+  $('#total42').textContent = 'Итого с акцией: ' + fmt(sched42.totalWithPromo);
 }
+function renderScheduleTable(sel, rows, totalWithPromo) {
+  $(sel).innerHTML = rows.map(r => '<tr' + (r.status !== 'Ежемесячно' ? ' style="color:var(--muted)"' : '') + '><td>' + r.month + ' мес.</td><td>' + (r.payment > 0 ? fmt(r.payment) : '—') + '</td><td>' + r.status + '</td></tr>').join('') +
+    '<tr class="sum"><td>Всего</td><td>' + fmt(totalWithPromo) + '</td><td></td></tr>';
+}
+/* Обработчики тоглов — пересчёт при переключении */
+$('#famChk').addEventListener('change', render);
+$('#housingChk').addEventListener('change', render);
+$('#promo21Fam').addEventListener('change', render);
+$('#promo42Fam').addEventListener('change', render);
 
 /* ========= Телефон: маска +7(XXX)XXX-XX-XX, первая цифра 9 уже стоит, только цифры, без вставки ========= */
 const fmtPhone = u => { let r = '+7(' + u.slice(0, 3); if (u.length > 3) r += ')' + u.slice(3, 6); if (u.length > 6) r += '-' + u.slice(6, 8); if (u.length > 8) r += '-' + u.slice(8, 10); return r; };
@@ -543,7 +648,7 @@ function send(obj) {
   if (SCRIPT_URL) fetch(SCRIPT_URL, {method: 'POST', mode: 'no-cors', body: new URLSearchParams(obj)}).catch(() => {});
 }
 function answers() {
-  const {tier, total} = calc(), yn = v => v === 'yes' ? 'Да' : 'Нет', m = n => fmt(+n || 0), j = (a, f) => a.map(f).join('; ');
+  const c = calc(), yn = v => v === 'yes' ? 'Да' : 'Нет', m = n => fmt(+n || 0), j = (a, f) => a.map(f).join('; ');
   return {
     debt: state.debt, creditors: $('#credTotal').value, creditorsNonBank: $('#credNon').value,
     crime: yn(val('crime')), bankrupt5: yn(val('bankrupt5')), region: regEl.value, age: $('#age').value,
@@ -555,7 +660,9 @@ function answers() {
     ooo: j(items('ooo'), o => `доля ${o.share}%, балансовая ${m(o.book)}${o.liq ? ', ликвидация' : ''}`),
     debtors: j(items('debtor'), d => `${d.type}: ${m(d.sum)}${d.court ? ', решение суда' : ''}${d.bad ? ', безнадёжный' : ''}`),
     broker: yn(val('broker')), alienated: j(items('alien'), p => `${p.type}: ${m(p.cost)}`),
-    tier: tier.name, months: tier.months, total,
+    tier: c.tier.label, months: TERM_MONTHS, total: c.finalTotalStandard,
+    familyDiscount: $('#famChk').checked ? 'Да' : 'Нет',
+    singleHousing: $('#housingChk').checked ? 'Да' : 'Нет',
     discount: discountPhone ? 'Да' : 'Нет', discountPhone
   };
 }
