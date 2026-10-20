@@ -11,6 +11,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap&subset=cyrillic" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.4/jspdf.plugin.autotable.min.js"></script>
 <style>
 :root{
   --bg:#f6f7f9; --card:#fff; --field:#f1f2f5; --line:#e4e6ec;
@@ -57,13 +59,6 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appear
 .tip{font-size:.82rem;color:var(--muted);background:var(--field);border-radius:var(--r);padding:.6rem .75rem;margin:-.1rem 0 .6rem}
 .sec{padding:1rem 0;border-top:1px solid var(--line)}
 .sec:first-of-type{border-top:0;padding-top:0}
-.items{display:grid;gap:.5rem;margin-bottom:.2rem}
-.items:empty{display:none}
-.item{display:grid;gap:.55rem;margin-bottom:.9rem}
-.ititle{font-weight:700;font-size:.9rem}
-.fl{font-weight:700;font-size:.88rem;margin-bottom:.35rem}
-.acts{display:grid;justify-items:start}
-.acts .link[hidden]{display:none}
 .stp{display:flex;align-items:center;gap:.6rem}
 .stp button{width:3rem;height:3rem;border-radius:var(--r);border:1.5px solid var(--line);background:var(--field);color:var(--text);font-size:1.4rem;cursor:pointer}
 .stp button:disabled{opacity:.35;cursor:default}
@@ -141,14 +136,6 @@ tr.sum td{font-weight:800}
   <section class="step" data-step="2" hidden>
     <h1>Шаг 2. Ваши кредиторы</h1>
     <div class="f">
-      <div class="lbl"><label for="credTotal">Общее количество кредиторов</label><button type="button" class="info" data-tip="Банки, МФО, физлица, налоговая, ЖКХ — все, кому вы должны.">i</button></div>
-      <input type="number" id="credTotal" inputmode="numeric" min="0">
-    </div>
-    <div class="f">
-      <div class="lbl"><label for="credNon">Количество кредиторов — не банков и не МФО</label><button type="button" class="info" data-tip="Например: налоговая, ЖКХ, физические лица, организации.">i</button></div>
-      <input type="number" id="credNon" inputmode="numeric" min="0">
-    </div>
-    <div class="f">
       <div class="lbl">Есть ли долги, которые возникли в результате совершения преступления?<button type="button" class="info" data-tip="Например, ущерб по приговору суда или штрафы по уголовному делу.">i</button></div>
       <div class="opts row" data-radio="crime" data-opts="yes:Да|no:Нет" data-def="no"></div>
     </div>
@@ -182,20 +169,7 @@ tr.sum td{font-weight:800}
     </div>
     <div class="f">
       <div class="lbl">Семейное положение</div>
-      <div class="opts" data-radio="marital" data-opts="married:Состою в браке|single:Холост|widow:Вдова/вдовец" data-def="single"></div>
-    </div>
-    <div class="f">
-      <div class="lbl">Имеется ли инвалидность?</div>
-      <div class="opts" data-radio="disability" data-opts="none:Нет|1:1 группа|2:2 группа|3:3 группа" data-def="none"></div>
-    </div>
-    <div class="f">
-      <div class="lbl"><label for="income">Среднемесячный доход, ₽</label><button type="button" class="info" data-tip="Средний официальный и неофициальный доход за месяц после вычета налогов.">i</button></div>
-      <input type="number" id="income" inputmode="numeric" min="0">
-    </div>
-    <div class="f">
-      <div class="lbl">Количество детей до 18 лет</div>
-      <div class="stp"><button type="button" id="kMinus" aria-label="Уменьшить" disabled>−</button><output id="kOut" aria-live="polite">0</output><button type="button" id="kPlus" aria-label="Увеличить">+</button></div>
-      <div class="opts" id="spWrap" hidden style="margin-top:.7rem"><label class="opt chk"><input type="checkbox" id="secondParent"><span>Второй родитель финансово не участвует в воспитании ребёнка</span></label></div>
+      <div class="opts" data-radio="marital" data-opts="married:Состою в браке|single:Холост/не замужем|divorced:Разведён/разведена|widow:Вдова/вдовец" data-def="single"></div>
     </div>
     <div class="err"></div>
     <div class="nav"><button type="button" class="btn back" data-prev aria-label="Назад">‹</button><button type="button" class="btn" data-next>Продолжить</button></div>
@@ -203,25 +177,14 @@ tr.sum td{font-weight:800}
 
   <!-- ШАГ 4 -->
   <section class="step" data-step="4" hidden>
-    <h1>Шаг 4. Имущество и иные активы</h1>
-    <div class="sec">
-      <div class="lbl">Имущество<button type="button" class="info" data-tip="Недвижимость, транспорт, ценные бумаги и другое имущество в вашей собственности.">i</button></div>
-      <div class="items" id="list-property"></div>
-      <div class="acts"><button type="button" class="link" data-add="property">Добавить имущество</button><button type="button" class="link" data-del="property" hidden>Удалить имущество</button></div>
+    <h1>Шаг 4. Имущество и активы</h1>
+    <div class="f">
+      <div class="lbl">Нужно ли защищать имущество (авто, квартира, дом)?<button type="button" class="info" data-tip="Если вы планируете продавать или уже продали имущество, его могут включить в конкурсную массу.">i</button></div>
+      <div class="opts row" data-radio="propertyProtect" data-opts="no:Нет|yes:Да" data-def="no"></div>
     </div>
-    <div class="sec">
-      <div class="lbl">ООО, в которых вы являетесь учредителем</div>
-      <div class="items" id="list-ooo"></div>
-      <div class="acts"><button type="button" class="link" data-add="ooo">Добавить ООО</button><button type="button" class="link" data-del="ooo" hidden>Удалить ООО</button></div>
-    </div>
-    <div class="sec">
-      <div class="lbl">Долги перед вами<button type="button" class="info" data-tip="Люди или организации, которые должны вам деньги.">i</button></div>
-      <div class="items" id="list-debtor"></div>
-      <div class="acts"><button type="button" class="link" data-add="debtor">Добавить дебитора</button><button type="button" class="link" data-del="debtor" hidden>Удалить дебитора</button></div>
-    </div>
-    <div class="sec">
-      <div class="lbl">Есть ли у вас инвестиционные брокерские счета?</div>
-      <div class="opts row" data-radio="broker" data-opts="yes:Да|no:Нет" data-def="no"></div>
+    <div class="f">
+      <div class="lbl">Сейчас или 3 года назад у вас открыто ИП или вы были учредителем ООО?<button type="button" class="info" data-tip="Наличие ИП или статуса учредителя влияет на стоимость процедуры.">i</button></div>
+      <div class="opts" data-radio="business" data-opts="none:Нет|ip:Только ИП|ooo:Только ООО|both:ИП+ООО" data-def="none"></div>
     </div>
     <div class="err"></div>
     <div class="nav"><button type="button" class="btn back" data-prev aria-label="Назад">‹</button><button type="button" class="btn" data-next>Продолжить</button></div>
@@ -229,9 +192,15 @@ tr.sum td{font-weight:800}
 
   <!-- ШАГ 5 -->
   <section class="step" data-step="5" hidden>
-    <h1>Шаг 5. Имущество, которое было в вашей собственности в течение 3 последних лет<button type="button" class="info" style="margin-left:.4rem;vertical-align:middle" data-tip="Проданное, подаренное или иным образом переданное другим лицам имущество.">i</button></h1>
-    <div class="items" id="list-alien"></div>
-    <div class="acts"><button type="button" class="link" data-add="alien">Добавить отчуждённое имущество</button><button type="button" class="link" data-del="alien" hidden>Удалить отчуждённое имущество</button></div>
+    <h1>Шаг 5. Были ли сделки за 3 года</h1>
+    <div class="f">
+      <div class="lbl">Продавали, дарили или передавали другое имущество в последние 3 года?</div>
+      <div class="opts row" data-radio="deals3y" data-opts="no:Нет|yes:Да" data-def="no"></div>
+    </div>
+    <details open style="margin-top:.6rem">
+      <summary style="cursor:pointer;font-weight:600;font-size:.9rem">Подробнее</summary>
+      <div class="tip" style="margin-top:.5rem">К сделкам относятся: купля-продажа недвижимости и автомобилей, другие крупные сделки (продажа бизнеса, земельных участков), дарение имущества, передача прав на требования. Если вы продали или подарили имущество за 3 года до подачи заявления — это может повлиять на процедуру банкротства.</div>
+    </details>
     <div class="err"></div>
     <div class="nav"><button type="button" class="btn back" data-prev aria-label="Назад">‹</button><button type="button" class="btn" data-next>Продолжить</button></div>
   </section>
@@ -251,6 +220,11 @@ tr.sum td{font-weight:800}
       <label class="opt chk"><input type="checkbox" id="housingChk"><span>Сохранение единственного жилья (+24 000 ₽)</span></label>
     </div>
 
+    <!-- Промокод -->
+    <div style="margin-bottom:.8rem">
+      <label class="opt chk"><input type="checkbox" id="promoCode" checked><span>Промокод ЦИФРАТРИНАДЦАТЬ (−13%)</span></label>
+    </div>
+
     <!-- Основная таблица расчёта -->
     <div class="lbl">Детализация расчёта</div>
     <table><thead><tr><th>Позиция</th><th>Сумма</th><th>Примечание</th></tr></thead><tbody id="sched"></tbody></table>
@@ -259,37 +233,40 @@ tr.sum td{font-weight:800}
     <div class="note" id="promoNote" hidden>Скидка 10% предоставляется каждому клиенту при условии заключения двух договоров в одном календарном месяце. Заявление подаётся в суд в течение 14 дней при полном пакете документов. Депозит арбитражного управляющего (25 000 ₽) оплачивается отдельно.</div>
 
     <!-- Информационный блок про нотариуса и депозит -->
-    <div class="note">Дополнительные расходы: нотариальная доверенность — <b>3 000 ₽</b>, депозит арбитражного управляющего — <b>25 000 ₽</b>. Не входят в график платежей, оплачиваются отдельно.<br><br>Рассчитанная стоимость услуг конечная и включает все расходы (при условии, что вы верно заполнили анкету).<br><br>Остались вопросы по расчёту или цена кажется необоснованной — свяжитесь с нами по бесплатному телефону <a href="tel:88003338913">8 (800) 333-89-13</a>.</div>
+    <div class="note">Дополнительные расходы*: нотариальная доверенность — <b>3 000 ₽*</b>, депозит арбитражного управляющего — <b>25 000 ₽*</b>. Не входят в график платежей, оплачиваются отдельно.<br><br>Рассчитанная стоимость услуг конечная и включает все расходы (при условии, что вы верно заполнили анкету).<br><br>Остались вопросы по расчёту или цена кажется необоснованной — свяжитесь с нами по бесплатному телефону <a href="tel:88003338913">8 (800) 333-89-13</a>.</div>
 
     <!-- Итого -->
     <div class="total" id="total"></div>
 
-    <!-- Спойлер с акциями 2+1 и 4+2 -->
-    <details style="margin-top:1rem" id="promoDetails">
-      <summary style="cursor:pointer;font-weight:700;padding:.5rem 0">Акции «2+1» и «4+2»</summary>
+    <!-- Кнопки -->
+    <div style="display:flex;gap:.5rem;margin-bottom:1rem">
+      <button type="button" class="btn" id="btnDownload" style="flex:1">Скачать расчёт</button>
+      <button type="button" class="btn" id="btnConsult" style="flex:1">Бесплатная консультация</button>
+    </div>
 
-      <!-- Акция 2+1 -->
-      <div style="margin-top:.8rem">
-        <div class="lbl">Акция «2+1»</div>
-        <div class="hint" style="margin-bottom:.6rem">Оплата 2 месяцев сразу, 1 месяц в конце — бесплатно. Итого: 11 платежей вместо 14.</div>
-        <label class="opt chk" style="margin-bottom:.6rem"><input type="checkbox" id="promo21Fam" checked><span>Применить скидку 10% (семейное)</span></label>
-        <table><thead><tr><th>Месяц</th><th>Сумма</th><th>Статус</th></tr></thead><tbody id="sched21"></tbody></table>
-        <div class="total" id="total21" style="font-size:1.3rem"></div>
-      </div>
+    <!-- Спойлер с акциями 2+1 -->
+    <details style="margin-bottom:.8rem">
+      <summary style="cursor:pointer;font-weight:700;padding:.5rem 0">Акция «2+1»</summary>
+      <div class="hint" style="margin:.6rem 0">Оплата 2 месяцев сразу, 1 месяц в конце — бесплатно. Итого: 11 платежей вместо 14.</div>
+      <label class="opt chk" style="margin-bottom:.6rem"><input type="checkbox" id="promo21Fam" checked><span>Применить скидку 10% (семейное)</span></label>
+      <label class="opt chk" style="margin-bottom:.6rem"><input type="checkbox" id="promoCode21" checked><span>Промокод ЦИФРАТРИНАДЦАТЬ (−13%)</span></label>
+      <table><thead><tr><th>Месяц</th><th>Сумма</th><th>Статус</th></tr></thead><tbody id="sched21"></tbody></table>
+      <div class="total" id="total21" style="font-size:1.3rem"></div>
+    </details>
 
-      <!-- Акция 4+2 -->
-      <div style="margin-top:1.2rem">
-        <div class="lbl">Акция «4+2»</div>
-        <div class="hint" style="margin-bottom:.6rem">Оплата 4 месяцев сразу, 2 месяца в конце — бесплатно. Итого: 8 платежей вместо 14.</div>
-        <label class="opt chk" style="margin-bottom:.6rem"><input type="checkbox" id="promo42Fam" checked><span>Применить скидку 10% (семейное)</span></label>
-        <table><thead><tr><th>Месяц</th><th>Сумма</th><th>Статус</th></tr></thead><tbody id="sched42"></tbody></table>
-        <div class="total" id="total42" style="font-size:1.3rem"></div>
-      </div>
+    <!-- Спойлер с акциями 4+2 -->
+    <details style="margin-bottom:.8rem">
+      <summary style="cursor:pointer;font-weight:700;padding:.5rem 0">Акция «4+2»</summary>
+      <div class="hint" style="margin:.6rem 0">Оплата 4 месяцев сразу, 2 месяца в конце — бесплатно. Итого: 8 платежей вместо 14.</div>
+      <label class="opt chk" style="margin-bottom:.6rem"><input type="checkbox" id="promo42Fam" checked><span>Применить скидку 10% (семейное)</span></label>
+      <label class="opt chk" style="margin-bottom:.6rem"><input type="checkbox" id="promoCode42" checked><span>Промокод ЦИФРАТРИНАДЦАТЬ (−13%)</span></label>
+      <table><thead><tr><th>Месяц</th><th>Сумма</th><th>Статус</th></tr></thead><tbody id="sched42"></tbody></table>
+      <div class="total" id="total42" style="font-size:1.3rem"></div>
     </details>
 
     <!-- Заявка -->
     <div class="disc">
-      <label class="opt chk"><input type="checkbox" id="discChk" checked><span>Хочу получить скидку</span></label>
+      <label class="opt chk"><input type="checkbox" id="discChk" checked><span>Промокод ЦИФРАТРИНАДЦАТЬ применён</span></label>
       <div id="discBox">
         <input type="text" id="discPhone" inputmode="numeric" autocomplete="off" aria-label="Номер телефона">
         <div class="hint">Отправим промокод в СМС на номер.</div>
@@ -315,6 +292,7 @@ tr.sum td{font-weight:800}
       <button type="button" class="link" data-dlg="dlgPrivacy">Политика конфиденциальности</button>
       <button type="button" class="link" data-dlg="dlgPd">Политика обработки персональных данных</button>
     </div>
+    <div style="font-size:.72rem;margin-top:.4rem;color:var(--muted)">* — цены могут незначительно меняться в зависимости от региона, указаны средние по РФ значения</div>
     <details><summary>Реквизиты организации</summary>
       <div>ООО «Тест» (тестовые данные)<br>ИНН 7700000000 · КПП 770001001<br>ОГРН 1000000000000<br>Юр. адрес: 101000, г. Москва, ул. Тестовая, д. 1, офис 1<br>Тел.: 8 (800) 333-89-13<br>E-mail: info@example.ru</div>
     </details>
@@ -333,13 +311,31 @@ tr.sum td{font-weight:800}
   <button type="button" class="btn ghost" data-close>Закрыть</button></dialog>
 <dialog id="dlgPrivacy"><h2>Политика конфиденциальности</h2><p>Тестовый текст. Здесь будет политика конфиденциальности: какие данные собираются на сайте (в том числе через Яндекс Метрику и cookie), для чего и как долго они хранятся.</p><button type="button" class="btn" data-close>Закрыть</button></dialog>
 <dialog id="dlgPd"><h2>Политика обработки персональных данных</h2><p>Тестовый текст. Здесь будет политика обработки персональных данных в соответствии с 152-ФЗ: оператор, цели, перечень данных, сроки, права субъекта.</p><button type="button" class="btn" data-close>Закрыть</button></dialog>
+<dialog id="dlgPdf"><h2>Скачать расчёт</h2>
+  <div id="pdfForm" style="display:grid;gap:.6rem">
+    <input type="text" id="pdfPhone" inputmode="numeric" autocomplete="off" aria-label="Номер телефона">
+    <label class="opt chk"><input type="checkbox" id="pdfConsent"><span>Согласен на обработку персональных данных</span></label>
+    <div id="pdfSummary" class="note" style="margin:0"></div>
+    <button type="button" class="link" data-dlg="dlgPd">Политика обработки персональных данных</button>
+    <button type="button" class="btn" id="pdfSend" disabled>Скачать PDF</button>
+  </div>
+  <button type="button" class="btn ghost" data-close>Закрыть</button></dialog>
+<dialog id="dlgConsult"><h2>Бесплатная консультация юриста</h2>
+  <p style="margin:0 0 .8rem;color:var(--muted)">Оставьте номер телефона — юрист перезвонит и ответит на все вопросы по банкротству.</p>
+  <div id="consultForm" style="display:grid;gap:.6rem">
+    <input type="text" id="consultPhone" inputmode="numeric" autocomplete="off" aria-label="Номер телефона">
+    <label class="opt chk"><input type="checkbox" id="consultConsent"><span>Согласен на обработку персональных данных</span></label>
+    <div id="consultSummary" class="note" style="margin:0"></div>
+    <button type="button" class="link" data-dlg="dlgPd">Политика обработки персональных данных</button>
+    <button type="button" class="btn" id="consultSend" disabled>Отправить</button>
+  </div>
+  <div class="okmsg" id="consultOk" hidden>Спасибо! Юрист скоро свяжется с вами.</div>
+  <button type="button" class="btn ghost" data-close>Закрыть</button></dialog>
 <div id="cookie" role="dialog" aria-label="Уведомление о cookie"><span>Мы используем файлы cookie и Яндекс Метрику для работы сайта и анализа посещаемости. Подробнее — в <button type="button" class="ln" data-dlg="dlgPrivacy">политике конфиденциальности</button>.</span><button type="button" class="ckb" id="ckOk">ОК</button></div>
 
 <script>
 'use strict';
 /* ========= ТАРИФНАЯ СЕТКА И ДОП. УСЛУГИ ========= */
-const PROP_TYPES = ['Автотранспорт','Дом','Квартира','Нежилое помещение','Акции/ценные бумаги','Оружие','Патенты/товарные знаки','Самоходные транспортные средства'];
-const DEBTOR_TYPES = ['Физическое лицо','Юридическое лицо','Индивидуальный предприниматель'];
 const TERM_MONTHS = 14; // срок рассрочки фиксированно
 const PRICE_SCHEDULE = [
   {maxDebt: 300000,   basePrice: 68700,  monthlyPayment: 7400, label: 'До 300 000 ₽'},
@@ -363,7 +359,7 @@ const COURT_DEPOSIT = 25000;
    fields: ключ → "entry.XXXXXXX" (id вопроса). Пустое значение — поле не отправляется. */
 const GFORM = {
   action: '',
-  fields: {session:'',callbackPhone:'',discount:'',discountPhone:'',debt:'',creditors:'',creditorsNonBank:'',crime:'',bankrupt5:'',region:'',age:'',gender:'',marital:'',disability:'',income:'',children:'',secondParent:'',property:'',ooo:'',debtors:'',broker:'',alienated:'',tier:'',months:'',total:'',familyDiscount:'',singleHousing:''}
+  fields: {session:'',callbackPhone:'',discount:'',discountPhone:'',debt:'',crime:'',bankrupt5:'',region:'',age:'',gender:'',marital:'',propertyProtect:'',business:'',deals3y:'',tier:'',months:'',total:'',familyDiscount:'',singleHousing:''}
 };
 
 /* Apps Script (обновление записи по session, см. apps-script.gs): вставьте URL веб-приложения */
@@ -410,45 +406,6 @@ const debtEl = $('#debt');
 debtEl.addEventListener('input', () => {
   debtEl.value = debtEl.value.replace(/\D/g, '').slice(0, 12);
   $('#debtFmt').textContent = debtEl.value ? fmt(+debtEl.value) : '';
-});
-
-/* ========= Дети (0–10) ========= */
-let kids = 0;
-const kOut = $('#kOut'), kM = $('#kMinus'), kP = $('#kPlus');
-function setKids(n) {
-  kids = Math.max(0, Math.min(10, n)); kOut.textContent = kids;
-  kM.disabled = kids === 0; kP.disabled = kids === 10;
-  $('#spWrap').hidden = kids === 0; if (!kids) $('#secondParent').checked = false;
-}
-kM.onclick = () => setKids(kids - 1); kP.onclick = () => setKids(kids + 1);
-
-/* ========= Динамические списки ========= */
-const PROP_F = [{k:'type', t:'select', o:PROP_TYPES, l:'Тип имущества'}, {k:'cost', t:'number', l:'Стоимость, ₽', p:'Сумма в рублях'}];
-const SCHEMAS = {
-  property: {title:'Имущество', f:PROP_F},
-  alien:    {title:'Имущество', f:PROP_F},
-  ooo:      {title:'ООО', f:[{k:'share', t:'number', l:'Доля, в %', p:'От 0.01 до 100', max:100}, {k:'book', t:'number', l:'Балансовая стоимость, ₽', p:'Сумма в рублях'}, {k:'liq', t:'check', l:'Находится в стадии ликвидации'}]},
-  debtor:   {title:'Дебитор', f:[{k:'type', t:'select', o:DEBTOR_TYPES, l:'Тип дебитора'}, {k:'sum', t:'number', l:'Сумма долга, ₽', p:'Сумма в рублях'}, {k:'court', t:'check', l:'Решение суда по долгу'}, {k:'bad', t:'check', l:'Безнадёжный долг'}]}
-};
-const count = k => $$('#list-' + k + ' .item').length;
-const items = kind => $$('#list-' + kind + ' .item').map(el => {
-  const o = {}; $$('[data-k]', el).forEach(i => o[i.dataset.k] = i.type === 'checkbox' ? i.checked : i.value); return o;
-});
-function addItem(kind) {
-  const S = SCHEMAS[kind], el = document.createElement('div');
-  el.className = 'item';
-  el.innerHTML = `<div class="ititle">${S.title} ${count(kind) + 1}</div>` + S.f.map(x => {
-    if (x.t === 'select') return `<select data-k="${x.k}" aria-label="${x.l}">${x.o.map(o => `<option>${o}</option>`).join('')}</select>`;
-    if (x.t === 'check') return `<label class="opt chk"><input type="checkbox" data-k="${x.k}"><span>${x.l}</span></label>`;
-    return `<div><div class="fl">${x.l}</div><input type="number" data-k="${x.k}" inputmode="decimal" step="any" min="0"${x.max ? ` max="${x.max}"` : ''}></div>`;
-  }).join('');
-  $('#list-' + kind).append(el);
-  $(`[data-del="${kind}"]`).hidden = false;
-}
-document.addEventListener('click', e => {
-  const a = e.target.closest('[data-add]'); if (a) addItem(a.dataset.add);
-  const d = e.target.closest('[data-del]');
-  if (d) { const k = d.dataset.del, last = $$('#list-' + k + ' .item').pop(); if (last) last.remove(); d.hidden = !count(k); }
 });
 
 /* ========= Регионы ========= */
@@ -515,27 +472,49 @@ $('#geoBtn').addEventListener('click', () => {
 });
 
 /* ========= Расчёт ========= */
-function calcBase(debt, opts) {
+function collect() {
+  return {
+    debt: state.debt,
+    region: regEl.value,
+    propertyProtect: val('propertyProtect') === 'yes',
+    business: val('business'), // none|ip|ooo|both
+    deals3y: val('deals3y') === 'yes',
+    familyDiscount: $('#famChk').checked,
+    singleHousing: $('#housingChk').checked
+  };
+}
+function calc() {
+  const d = collect();
+  const debt = d.debt;
+  // Шаг 4.1: Определение базовой ставки
   const tier = PRICE_SCHEDULE.find(t => debt <= t.maxDebt);
   const baseMonthlyPayment = tier.monthlyPayment;
   const basePrice = tier.basePrice;
+  // Шаг 4.2: Сумма дополнительных услуг
   let costDop = EXTRA_SERVICE_PRICES.efrsbPublications; // всегда
-  if (opts.singleHousing) costDop += EXTRA_SERVICE_PRICES.singleHousing;
-  costDop += opts.propertyCount * EXTRA_SERVICE_PRICES.propertyProtection;
+  if (d.singleHousing) costDop += EXTRA_SERVICE_PRICES.singleHousing;
+  // Защита имущества: фиксированно +40 000
+  if (d.propertyProtect) costDop += EXTRA_SERVICE_PRICES.propertyProtection;
+  // ИП/ООО
+  if (d.business === 'ip' || d.business === 'ooo') costDop += 40000;
+  if (d.business === 'both') costDop += 80000;
+  // Шаг 4.3: Базовая сумма за весь срок
   const totalBase = (baseMonthlyPayment * TERM_MONTHS) + costDop;
-  const famPct = opts.familyDiscount ? 10 : 0;
+  // Шаг 4.4: Применение скидок
+  const famPct = d.familyDiscount ? 10 : 0;
   const discountRub = Math.round(totalBase * famPct / 100);
   const totalAfter = totalBase - discountRub;
-  const finalMonthly = Math.ceil(totalAfter / TERM_MONTHS / 100) * 100;
-  const finalTotal = finalMonthly * TERM_MONTHS;
-  return { tier, basePrice, baseMonthlyPayment, costDop, familyDiscountPercent: famPct, discountPercentRub: discountRub, totalBase, finalMonthlyPayment: finalMonthly, finalTotalStandard: finalTotal };
-}
-function calc() {
-  return calcBase(state.debt, {
-    propertyCount: items('property').length,
-    familyDiscount: $('#famChk').checked,
-    singleHousing: $('#housingChk').checked
-  });
+  // Шаг 4.5: Ежемесячный платёж с округлением вверх до 100
+  const rawMonthlyPayment = totalAfter / TERM_MONTHS;
+  const finalMonthlyPayment = Math.ceil(rawMonthlyPayment / 100) * 100;
+  const finalTotalStandard = finalMonthlyPayment * TERM_MONTHS;
+  return {
+    tier, basePrice, baseMonthlyPayment, costDop,
+    familyDiscountPercent: famPct, discountPercentRub: discountRub,
+    totalBase, finalMonthlyPayment, finalTotalStandard,
+    notary: NOTARY, courtDeposit: COURT_DEPOSIT,
+    propertyProtect: d.propertyProtect, business: d.business
+  };
 }
 /* Генерация графика для акции: promoMode = 'NONE' | '2+1' | '4+2' */
 function generateSchedule(monthly, termMonths, promoMode) {
@@ -555,62 +534,100 @@ function generateSchedule(monthly, termMonths, promoMode) {
   const totalWithPromo = upfrontPayment + (monthly * remainingCount);
   return { rows, upfrontPayment, remainingCount, totalWithPromo };
 }
+function renderScheduleTable(sel, rows, totalWithPromo) {
+  $(sel).innerHTML = rows.map(r => '<tr' + (r.status !== 'Ежемесячно' ? ' style="color:var(--muted)"' : '') + '><td>' + r.month + ' мес.</td><td>' + (r.payment > 0 ? fmt(r.payment) : '—') + '</td><td>' + r.status + '</td></tr>').join('') +
+    '<tr class="sum"><td>Всего</td><td>' + fmt(totalWithPromo) + '</td><td></td></tr>';
+}
+/* Расчёт с учётом промокода */
+const PROMO_RATE = 0.13; // 13%
+function calcWithPromo(base, promoActive) {
+  if (promoActive) {
+    // Активен: скидка 13%
+    const discount = Math.round(base * PROMO_RATE);
+    const totalAfter = base - discount;
+    return { total: totalAfter, discount, promoActive: true, label: '−13% (−' + fmt(discount) + ')' };
+  } else {
+    // Неактивен: +13%
+    const extra = Math.ceil(base * PROMO_RATE / 100) * 100;
+    const totalWith = base + extra;
+    return { total: totalWith, extra, promoActive: false, label: '+13% (+' + fmt(extra) + ')' };
+  }
+}
 function render() {
   const c = calc();
-  const propCount = items('property').length;
   // Основная таблица расчёта
   let rows = [
     ['Тариф', c.tier.label, 'по сумме долга'],
     ['Базовая стоимость', c.basePrice, 'по прайсу'],
     ['Базовый платёж/мес', c.baseMonthlyPayment, '₽'],
   ];
-  if (propCount > 0) {
-    rows.push(['Защита имущества', EXTRA_SERVICE_PRICES.propertyProtection * propCount, propCount + ' × ' + EXTRA_SERVICE_PRICES.propertyProtection.toLocaleString('ru-RU') + ' ₽']);
+  if (c.propertyProtect) {
+    rows.push(['Защита имущества', EXTRA_SERVICE_PRICES.propertyProtection, 'недвижимость, транспорт']);
+  }
+  if (c.business === 'ip' || c.business === 'ooo') {
+    rows.push(['ИП / ООО', 40000, 'влияет на процедуру']);
+  } else if (c.business === 'both') {
+    rows.push(['ИП + ООО', 80000, 'влияет на процедуру']);
   }
   if ($('#housingChk').checked) {
     rows.push(['Сохранение жилья', EXTRA_SERVICE_PRICES.singleHousing, 'единственное жильё']);
   }
-  rows.push(['ЕФРСБ публикации', EXTRA_SERVICE_PRICES.efrsbPublications, 'обязательные']);
+  rows.push(['ЕФРСБ публикации*', EXTRA_SERVICE_PRICES.efrsbPublications, 'обязательные']);
   if (c.familyDiscountPercent > 0) {
     rows.push(['Скидка «Семья-10%»', c.discountPercentRub, '−' + c.discountPercentRub.toLocaleString('ru-RU') + ' ₽']);
   }
+  // Промокод в основной таблице
+  const promoActive = $('#promoCode').checked;
+  const promoResult = calcWithPromo(c.finalTotalStandard, promoActive);
+  if (promoActive) {
+    rows.push(['Промокод ЦИФРАТРИНАДЦАТЬ', promoResult.discount, '−13%']);
+  } else {
+    rows.push(['Промокод ЦИФРАТРИНАДЦАТЬ', 0, 'зачёркнуто']);
+  }
+  const mainTotal = promoResult.total;
+  const mainMonthly = Math.ceil(mainTotal / TERM_MONTHS / 100) * 100;
   $('#sched').innerHTML = rows.map(r => '<tr><td>' + r[0] + '</td><td>' + fmt(r[1]) + '</td><td>' + r[2] + '</td></tr>').join('') +
-    '<tr class="sum"><td>Итоговый платёж/мес</td><td>' + fmt(c.finalMonthlyPayment) + '</td><td>' + TERM_MONTHS + ' мес.</td></tr>' +
-    '<tr class="sum"><td>Итого за срок</td><td>' + fmt(c.finalTotalStandard) + '</td><td></td></tr>';
+    '<tr class="sum"><td>Итоговый платёж/мес</td><td>' + fmt(mainMonthly) + '</td><td>' + TERM_MONTHS + ' мес.</td></tr>' +
+    '<tr class="sum"><td>Итого за срок</td><td>' + fmt(mainTotal) + '</td><td></td></tr>';
   $('#plan').innerHTML = 'Ваш тарифный план: <b>' + c.tier.label + '</b>, срок ' + TERM_MONTHS + ' мес.';
-  $('#total').textContent = 'Итого: ' + fmt(c.finalTotalStandard);
+  $('#total').textContent = 'Итого: ' + fmt(mainTotal);
   // Описание акции
   $('#promoNote').hidden = !$('#famChk').checked;
   // График 2+1
-  const opts21 = {
-    propertyCount: propCount,
-    familyDiscount: $('#promo21Fam').checked,
-    singleHousing: $('#housingChk').checked
-  };
-  const c21 = calcBase(state.debt, opts21);
-  const sched21 = generateSchedule(c21.finalMonthlyPayment, TERM_MONTHS, '2+1');
+  const c21 = calc(); c21.familyDiscountPercent = $('#promo21Fam').checked ? 10 : 0;
+  let totalBase21 = (c21.baseMonthlyPayment * TERM_MONTHS) + c21.costDop;
+  if ($('#promo21Fam').checked) totalBase21 -= Math.round(totalBase21 * 0.10);
+  const monthly21 = Math.ceil(totalBase21 / TERM_MONTHS / 100) * 100;
+  // Промокод для 2+1
+  const promo21 = calcWithPromo(monthly21 * TERM_MONTHS, $('#promoCode21').checked);
+  const monthly21Final = Math.ceil(promo21.total / TERM_MONTHS / 100) * 100;
+  const sched21 = generateSchedule(monthly21Final, TERM_MONTHS, '2+1');
+  const saving21 = (monthly21Final * TERM_MONTHS) - sched21.totalWithPromo;
+  const savingPct21 = Math.round(saving21 / (monthly21Final * TERM_MONTHS) * 100);
   renderScheduleTable('#sched21', sched21.rows, sched21.totalWithPromo);
-  $('#total21').textContent = 'Итого с акцией: ' + fmt(sched21.totalWithPromo);
+  $('#total21').innerHTML = 'Итого с акцией: ' + fmt(sched21.totalWithPromo) + '<div style="font-size:.8rem;color:var(--muted);font-weight:600">Выгода: ' + fmt(saving21) + ' (' + savingPct21 + '%)</div>';
   // График 4+2
-  const opts42 = {
-    propertyCount: propCount,
-    familyDiscount: $('#promo42Fam').checked,
-    singleHousing: $('#housingChk').checked
-  };
-  const c42 = calcBase(state.debt, opts42);
-  const sched42 = generateSchedule(c42.finalMonthlyPayment, TERM_MONTHS, '4+2');
+  const c42 = calc(); c42.familyDiscountPercent = $('#promo42Fam').checked ? 10 : 0;
+  let totalBase42 = (c42.baseMonthlyPayment * TERM_MONTHS) + c42.costDop;
+  if ($('#promo42Fam').checked) totalBase42 -= Math.round(totalBase42 * 0.10);
+  const monthly42 = Math.ceil(totalBase42 / TERM_MONTHS / 100) * 100;
+  // Промокод для 4+2
+  const promo42 = calcWithPromo(monthly42 * TERM_MONTHS, $('#promoCode42').checked);
+  const monthly42Final = Math.ceil(promo42.total / TERM_MONTHS / 100) * 100;
+  const sched42 = generateSchedule(monthly42Final, TERM_MONTHS, '4+2');
+  const saving42 = (monthly42Final * TERM_MONTHS) - sched42.totalWithPromo;
+  const savingPct42 = Math.round(saving42 / (monthly42Final * TERM_MONTHS) * 100);
   renderScheduleTable('#sched42', sched42.rows, sched42.totalWithPromo);
-  $('#total42').textContent = 'Итого с акцией: ' + fmt(sched42.totalWithPromo);
-}
-function renderScheduleTable(sel, rows, totalWithPromo) {
-  $(sel).innerHTML = rows.map(r => '<tr' + (r.status !== 'Ежемесячно' ? ' style="color:var(--muted)"' : '') + '><td>' + r.month + ' мес.</td><td>' + (r.payment > 0 ? fmt(r.payment) : '—') + '</td><td>' + r.status + '</td></tr>').join('') +
-    '<tr class="sum"><td>Всего</td><td>' + fmt(totalWithPromo) + '</td><td></td></tr>';
+  $('#total42').innerHTML = 'Итого с акцией: ' + fmt(sched42.totalWithPromo) + '<div style="font-size:.8rem;color:var(--muted);font-weight:600">Выгода: ' + fmt(saving42) + ' (' + savingPct42 + '%)</div>';
 }
 /* Обработчики тоглов — пересчёт при переключении */
 $('#famChk').addEventListener('change', render);
 $('#housingChk').addEventListener('change', render);
 $('#promo21Fam').addEventListener('change', render);
 $('#promo42Fam').addEventListener('change', render);
+$('#promoCode').addEventListener('change', render);
+$('#promoCode21').addEventListener('change', render);
+$('#promoCode42').addEventListener('change', render);
 
 /* ========= Телефон: маска +7(XXX)XXX-XX-XX, первая цифра 9 уже стоит, только цифры, без вставки ========= */
 const fmtPhone = u => { let r = '+7(' + u.slice(0, 3); if (u.length > 3) r += ')' + u.slice(3, 6); if (u.length > 6) r += '-' + u.slice(6, 8); if (u.length > 8) r += '-' + u.slice(8, 10); return r; };
@@ -648,18 +665,16 @@ function send(obj) {
   if (SCRIPT_URL) fetch(SCRIPT_URL, {method: 'POST', mode: 'no-cors', body: new URLSearchParams(obj)}).catch(() => {});
 }
 function answers() {
-  const c = calc(), yn = v => v === 'yes' ? 'Да' : 'Нет', m = n => fmt(+n || 0), j = (a, f) => a.map(f).join('; ');
+  const c = calc(), yn = v => v === 'yes' ? 'Да' : 'Нет', m = n => fmt(+n || 0);
   return {
-    debt: state.debt, creditors: $('#credTotal').value, creditorsNonBank: $('#credNon').value,
-    crime: yn(val('crime')), bankrupt5: yn(val('bankrupt5')), region: regEl.value, age: $('#age').value,
+    debt: state.debt,
+    crime: yn(val('crime')), bankrupt5: yn(val('bankrupt5')),
+    region: regEl.value, age: $('#age').value,
     gender: val('gender') === 'm' ? 'Мужской' : 'Женский',
-    marital: {married:'Состою в браке', single:'Холост', widow:'Вдова/вдовец'}[val('marital')],
-    disability: val('disability') === 'none' ? 'Нет' : val('disability') + ' группа', income: $('#income').value,
-    children: kids, secondParent: $('#secondParent').checked ? 'Да' : 'Нет',
-    property: j(items('property'), p => `${p.type}: ${m(p.cost)}`),
-    ooo: j(items('ooo'), o => `доля ${o.share}%, балансовая ${m(o.book)}${o.liq ? ', ликвидация' : ''}`),
-    debtors: j(items('debtor'), d => `${d.type}: ${m(d.sum)}${d.court ? ', решение суда' : ''}${d.bad ? ', безнадёжный' : ''}`),
-    broker: yn(val('broker')), alienated: j(items('alien'), p => `${p.type}: ${m(p.cost)}`),
+    marital: {married:'Состою в браке', single:'Холост/не замужем', divorced:'Разведён/разведена', widow:'Вдова/вдовец'}[val('marital')],
+    propertyProtect: yn(val('propertyProtect')),
+    business: {none:'Нет', ip:'Только ИП', ooo:'Только ООО', both:'ИП+ООО'}[val('business')],
+    deals3y: yn(val('deals3y')),
     tier: c.tier.label, months: TERM_MONTHS, total: c.finalTotalStandard,
     familyDiscount: $('#famChk').checked ? 'Да' : 'Нет',
     singleHousing: $('#housingChk').checked ? 'Да' : 'Нет',
@@ -688,17 +703,13 @@ discBtn.addEventListener('click', () => {
 });
 
 /* ========= Валидация и стоп-условия ========= */
-const itemsOk = k => items(k).every(o => Object.entries(o).every(([f, v]) => typeof v === 'boolean' || f === 'type' || (v !== '' && (f !== 'share' || (+v >= 0.01 && +v <= 100)))));
 const VALID = {
   1: () => { const v = +debtEl.value; if (!v) return 'Укажите сумму долгов'; state.debt = v; return ''; },
-  2: () => { const t = $('#credTotal').value, n = $('#credNon').value;
-    if (t === '' || +t < 1) return 'Укажите количество кредиторов';
-    if (+n > +t) return 'Кредиторов-не банков и не МФО не может быть больше общего числа'; return ''; },
+  2: () => '',
   3: () => { if (!REGIONS.includes(regEl.value)) return 'Выберите регион из списка';
-    const av = $('#age').value, a = +av; if (av === '') return 'Укажите возраст'; if (a < 18) return 'Вам должно быть от 18 лет'; if (a > 80) return 'Проверьте правильность возраста';
-    if ($('#income').value === '') return 'Укажите среднемесячный доход (если дохода нет — 0)'; return ''; },
-  4: () => ['property', 'ooo', 'debtor'].every(itemsOk) ? '' : 'Заполните все поля в добавленных пунктах (доля ООО — от 0.01 до 100)',
-  5: () => itemsOk('alien') ? '' : 'Заполните все поля в добавленных пунктах'
+    const av = $('#age').value, a = +av; if (av === '') return 'Укажите возраст'; if (a < 18) return 'Вам должно быть от 18 лет'; if (a > 80) return 'Проверьте правильность возраста'; return ''; },
+  4: () => '',
+  5: () => ''
 };
 const STOPS = {
   crime: 'При наличии долгов, связанных с преступлением, освобождение от долгов не допускается в соответствии с п. 4 ст. 213.28 Федерального закона «О несостоятельности (банкротстве)».',
@@ -752,6 +763,148 @@ const ck = $('#cookie'); let accepted = false;
 try { accepted = localStorage.getItem('ck') === '1'; } catch (e) {}
 if (!accepted) setTimeout(() => ck.classList.add('on'), 700);
 $('#ckOk').addEventListener('click', () => { ck.classList.remove('on'); try { localStorage.setItem('ck', '1'); } catch (e) {} });
+
+/* ========= Попапы: кнопки Скачать / Консультация ========= */
+// Функции форматирования телефона уже объявлены выше (initPhone и т.д.)
+
+function buildSummary() {
+  const c = calc();
+  const c21 = calc(); c21.familyDiscountPercent = $('#promo21Fam').checked ? 10 : 0;
+  let tb21 = (c21.baseMonthlyPayment * TERM_MONTHS) + c21.costDop;
+  if ($('#promo21Fam').checked) tb21 -= Math.round(tb21 * 0.10);
+  const m21 = Math.ceil(tb21 / TERM_MONTHS / 100) * 100;
+  const promo21 = calcWithPromo(m21 * TERM_MONTHS, $('#promoCode21').checked);
+  const m21f = Math.ceil(promo21.total / TERM_MONTHS / 100) * 100;
+  const sched21 = generateSchedule(m21f, TERM_MONTHS, '2+1');
+
+  const c42 = calc(); c42.familyDiscountPercent = $('#promo42Fam').checked ? 10 : 0;
+  let tb42 = (c42.baseMonthlyPayment * TERM_MONTHS) + c42.costDop;
+  if ($('#promo42Fam').checked) tb42 -= Math.round(tb42 * 0.10);
+  const m42 = Math.ceil(tb42 / TERM_MONTHS / 100) * 100;
+  const promo42 = calcWithPromo(m42 * TERM_MONTHS, $('#promoCode42').checked);
+  const m42f = Math.ceil(promo42.total / TERM_MONTHS / 100) * 100;
+  const sched42 = generateSchedule(m42f, TERM_MONTHS, '4+2');
+
+  return {
+    main: fmt(c.finalTotalStandard),
+    mainMonthly: fmt(c.finalMonthlyPayment),
+    tariff: c.tier.label,
+    debt: fmt(state.debt),
+    region: regEl.value,
+    marital: {married:'Состою в браке', single:'Холост/не замужем', divorced:'Разведён/разведена', widow:'Вдова/вдовец'}[val('marital')],
+    propertyProtect: val('propertyProtect') === 'yes' ? 'Да' : 'Нет',
+    business: {none:'Нет', ip:'Только ИП', ooo:'Только ООО', both:'ИП+ООО'}[val('business')],
+    deals3y: val('deals3y') === 'yes' ? 'Да' : 'Нет',
+    familyDiscount: $('#famChk').checked ? 'Да' : 'Нет',
+    singleHousing: $('#housingChk').checked ? 'Да' : 'Нет',
+    promo: $('#promoCode').checked ? 'Применён' : 'Не применён',
+    promo21_total: fmt(sched21.totalWithPromo),
+    promo21_saving: fmt((m21f * TERM_MONTHS) - sched21.totalWithPromo),
+    promo42_total: fmt(sched42.totalWithPromo),
+    promo42_saving: fmt((m42f * TERM_MONTHS) - sched42.totalWithPromo)
+  };
+}
+
+// PDF попап
+(function () {
+  const inp = $('#pdfPhone'), chk = $('#pdfConsent'), btn = $('#pdfSend');
+  const upd = () => { btn.disabled = !(phoneValid(inp) && chk.checked); };
+  initPhone(inp, upd); chk.addEventListener('change', upd);
+  $('#btnDownload').addEventListener('click', () => {
+    const s = buildSummary();
+    $('#pdfSummary').innerHTML = '<b>Ваш расчёт:</b><br>Основной тариф: ' + s.main + ' (' + s.mainMonthly + '/мес)<br>Акция 2+1: ' + s.promo21_total + ' (выгода ' + s.promo21_saving + ')<br>Акция 4+2: ' + s.promo42_total + ' (выгода ' + s.promo42_saving + ')';
+    $('#dlgPdf').showModal();
+  });
+  $('#pdfSend').addEventListener('click', () => {
+    send({callbackPhone: phoneE164($('#pdfPhone')), debt: debtEl.value});
+    generatePDF();
+    $('#dlgPdf').close();
+    goal('pdf_downloaded');
+  });
+})();
+
+// Консультация попап
+(function () {
+  const inp = $('#consultPhone'), chk = $('#consultConsent'), btn = $('#consultSend');
+  const upd = () => { btn.disabled = !(phoneValid(inp) && chk.checked); };
+  initPhone(inp, upd); chk.addEventListener('change', upd);
+  $('#btnConsult').addEventListener('click', () => {
+    const s = buildSummary();
+    $('#consultSummary').innerHTML = '<b>Ваш расчёт:</b><br>Тариф: ' + s.tariff + '<br>Сумма долга: ' + s.debt + '<br>Основной платёж: ' + s.mainMonthly + '/мес<br>2+1: ' + s.promo21_total + '<br>4+2: ' + s.promo42_total;
+    $('#dlgConsult').showModal();
+  });
+  $('#consultSend').addEventListener('click', () => {
+    send({callbackPhone: phoneE164($('#consultPhone')), debt: debtEl.value});
+    $('#consultForm').hidden = true; $('#consultOk').hidden = false; goal('consult_sent');
+  });
+})();
+
+/* ========= Генерация PDF ========= */
+function generatePDF() {
+  const c = calc();
+  const c21 = calc(); c21.familyDiscountPercent = $('#promo21Fam').checked ? 10 : 0;
+  let tb21 = (c21.baseMonthlyPayment * TERM_MONTHS) + c21.costDop;
+  if ($('#promo21Fam').checked) tb21 -= Math.round(tb21 * 0.10);
+  const m21 = Math.ceil(tb21 / TERM_MONTHS / 100) * 100;
+  const promo21 = calcWithPromo(m21 * TERM_MONTHS, $('#promoCode21').checked);
+  const m21f = Math.ceil(promo21.total / TERM_MONTHS / 100) * 100;
+  const sched21 = generateSchedule(m21f, TERM_MONTHS, '2+1');
+
+  const c42 = calc(); c42.familyDiscountPercent = $('#promo42Fam').checked ? 10 : 0;
+  let tb42 = (c42.baseMonthlyPayment * TERM_MONTHS) + c42.costDop;
+  if ($('#promo42Fam').checked) tb42 -= Math.round(tb42 * 0.10);
+  const m42 = Math.ceil(tb42 / TERM_MONTHS / 100) * 100;
+  const promo42 = calcWithPromo(m42 * TERM_MONTHS, $('#promoCode42').checked);
+  const m42f = Math.ceil(promo42.total / TERM_MONTHS / 100) * 100;
+  const sched42 = generateSchedule(m42f, TERM_MONTHS, '4+2');
+
+  const promoActive = $('#promoCode').checked;
+
+  if (typeof jsPDF === 'undefined') {
+    window.print();
+    return;
+  }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  doc.setFont('helvetica');
+
+  doc.setFontSize(18);
+  doc.text('Raschet stoimosti bankrotstva', 14, 20);
+
+  doc.setFontSize(11);
+  doc.text('Summa dolga: ' + fmt(state.debt), 14, 32);
+  doc.text('Region: ' + regEl.value, 14, 39);
+  doc.text('Semeinoe polozhenie: ' + ({married:'Sostoyu v braku', single:'Kholtost/ne zamuzhem', divorced:'Razvedyon/razvedena', widow:'Vdova/vdovec'}[val('marital')]), 14, 46);
+  doc.text('Zashchita imushchestva: ' + (val('propertyProtect') === 'yes' ? 'Da' : 'Net'), 14, 53);
+  doc.text('IP/OOO: ' + ({none:'Net', ip:'Tol' + String.fromCharCode(1050) + 'ko IP', ooo:'Tol' + String.fromCharCode(1050) + 'ko OOO', both:'IP+OOO'}[val('business')]), 14, 60);
+  doc.text('Sdelki za 3 goda: ' + (val('deals3y') === 'yes' ? 'Da' : 'Net'), 14, 67);
+  doc.text('Promokod: ' + (promoActive ? 'Primyon' : 'Ne primyon'));
+
+  doc.autoTable({
+    startY: 75,
+    head: [['Pozitsiya', 'Summa', 'Primечание']],
+    body: [
+      ['Tarif', c.tier.label, 'po summe dolga'],
+      ['Bazovaya stoimost', fmt(c.basePrice), 'po praisu'],
+      ['Bazovyi platezh/mes', fmt(c.baseMonthlyPayment), 'rub'],
+    ],
+    theme: 'grid'
+  });
+
+  doc.save('raschet_bankrotstva.pdf');
+}
+
+/* ========= Семейная скидка автоактивация ========= */
+document.addEventListener('change', e => {
+  if (e.target.name === 'marital') {
+    if (val('marital') === 'married') {
+      $('#famChk').checked = true;
+    } else {
+      $('#famChk').checked = false;
+    }
+    render();
+  }
+});
 </script>
 </body>
 </html>
