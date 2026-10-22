@@ -56,9 +56,10 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appear
 .promo{display:inline-block;flex:none;color:var(--accent);border:1.5px solid var(--accent);border-radius:8px;padding:.18rem .55rem;font-weight:800;font-size:.85rem;letter-spacing:.03em;line-height:1.25;white-space:nowrap;background:transparent}
 /* блик по буквам промокода: пролёт 2 с, пауза 4 с, цикл 6 с */
 @supports ((-webkit-background-clip:text) or (background-clip:text)){
-  .promo{color:transparent;background-image:linear-gradient(105deg,var(--accent) 0%,var(--accent) 40%,var(--glint) 50%,var(--accent) 60%,var(--accent) 100%);background-size:300% 100%;background-repeat:no-repeat;background-position:0 0;-webkit-background-clip:text;background-clip:text;animation:promoShine 6s linear infinite}
+  .promo{color:transparent;background-image:linear-gradient(105deg,var(--accent) 0%,var(--accent) 44%,var(--glint) 50%,var(--accent) 56%,var(--accent) 100%);background-size:300% 100%;background-repeat:no-repeat;background-position:85% 0;-webkit-background-clip:text;background-clip:text;animation:promoShine 6s linear infinite}
 }
-@keyframes promoShine{0%{background-position:0% 0}33.33%{background-position:100% 0}100%{background-position:100% 0}}
+/* блик стартует левее текста и уходит правее него; в первые 2 с цикла, с ускорением к концу, затем пауза 4 с */
+@keyframes promoShine{0%{background-position:85% 0;animation-timing-function:cubic-bezier(.32,0,.67,0)}33.33%{background-position:15% 0}100%{background-position:15% 0}}
 @media (prefers-reduced-motion:reduce){.promo{animation:none}}
 .promo-row{display:flex;align-items:center;flex-wrap:wrap;gap:.5rem .7rem}
 .promo-row>.opt{flex:1 1 13rem}
@@ -383,6 +384,7 @@ const PRICE_SCHEDULE = [
 const EXTRA_SERVICE_PRICES = {
   propertyProtection: 40000, // за 1 объект
   singleHousing: 24000,
+  deals3y: 40000, // если были сделки за последние 3 года
   efrsbPublications: 12000
 };
 const NOTARY = 3000;
@@ -534,6 +536,8 @@ function calc() {
   if (d.singleHousing) costDop += EXTRA_SERVICE_PRICES.singleHousing;
   // Защита имущества: фиксированно +40 000
   if (d.propertyProtect) costDop += EXTRA_SERVICE_PRICES.propertyProtection;
+  // Сделки за последние 3 года: +40 000
+  if (d.deals3y) costDop += EXTRA_SERVICE_PRICES.deals3y;
   // ИП/ООО
   if (d.business === 'ip' || d.business === 'ooo') costDop += 40000;
   if (d.business === 'both') costDop += 80000;
@@ -552,7 +556,7 @@ function calc() {
     familyDiscountPercent: famPct, discountPercentRub: discountRub,
     totalBase, finalMonthlyPayment, finalTotalStandard,
     notary: NOTARY, courtDeposit: COURT_DEPOSIT,
-    propertyProtect: d.propertyProtect, business: d.business
+    propertyProtect: d.propertyProtect, business: d.business, deals3y: d.deals3y
   };
 }
 /* Генерация графика для акции: promoMode = 'NONE' | '2+1' | '4+2' */
@@ -634,6 +638,7 @@ function computeOffer() {
     {label: 'Базовый платёж/мес', amount: c.baseMonthlyPayment, note: '₽'}
   ];
   if (c.propertyProtect) rows.push({label: 'Защита иного имущества', amount: EXTRA_SERVICE_PRICES.propertyProtection, note: 'авто, вторая квартира, дом'});
+  if (c.deals3y) rows.push({label: 'Сделки за 3 года', amount: EXTRA_SERVICE_PRICES.deals3y, note: 'влияет на процедуру'});
   if (c.business === 'ip' || c.business === 'ooo') rows.push({label: 'ИП / ООО', amount: 40000, note: 'влияет на процедуру'});
   else if (c.business === 'both') rows.push({label: 'ИП + ООО', amount: 80000, note: 'влияет на процедуру'});
   if ($('#housingChk').checked) rows.push({label: 'Защита единственного жилья', amount: EXTRA_SERVICE_PRICES.singleHousing, note: 'единственное жильё'});
@@ -690,7 +695,7 @@ $('#promoCode21').addEventListener('change', render);
 $('#promoCode42').addEventListener('change', render);
 
 /* ========= Предварительная стоимость (экраны 2–5) и итоговый диапазон ========= */
-$('#propDesc').textContent = 'Если вы планируете продавать или уже продали имущество, его могут включить в конкурсную массу. Расчёт такой: единственное жильё +' + Math.round(EXTRA_SERVICE_PRICES.singleHousing / 1000) + ' тыс., иное имущество +' + Math.round(EXTRA_SERVICE_PRICES.propertyProtection / 1000) + ' тыс.';
+$('#propDesc').textContent = 'Если вы планируете продавать или уже продали имущество, его могут включить в конкурсную массу.';
 const round10k = n => Math.round(n / 10000) * 10000;
 function estimateRange() {
   const real = computeOffer().total;
