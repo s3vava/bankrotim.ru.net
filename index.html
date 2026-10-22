@@ -16,11 +16,11 @@
 <style>
 :root{
   --bg:#f6f7f9; --card:#fff; --field:#f1f2f5; --line:#e4e6ec;
-  --text:#14171c; --muted:#5d6572; --accent:#e5384a; --accent-d:#c92b3c; --accent-soft:#fdecee;
+  --text:#14171c; --muted:#5d6572; --accent:#e5384a; --accent-d:#c92b3c; --accent-soft:#fdecee; --glint:#ff9aa6;
   --r:14px;
 }
 @media (prefers-color-scheme:dark){
-  :root{--bg:#0e1013; --card:#171a1f; --field:#222630; --line:#2c313b; --text:#f2f4f7; --muted:#a3abb8; --accent:#ff5063; --accent-d:#ff6b7a; --accent-soft:#2a1a1d}
+  :root{--bg:#0e1013; --card:#171a1f; --field:#222630; --line:#2c313b; --text:#f2f4f7; --muted:#a3abb8; --accent:#ff5063; --accent-d:#ff6b7a; --accent-soft:#2a1a1d; --glint:#ffffff}
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{font-size:125%;-webkit-text-size-adjust:100%}
@@ -54,6 +54,12 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appear
 .opt.chk span::before{border-radius:6px}
 .opt.chk input:checked+span::before{box-shadow:inset 0 0 0 3px var(--accent-soft)}
 .promo{display:inline-block;flex:none;color:var(--accent);border:1.5px solid var(--accent);border-radius:8px;padding:.18rem .55rem;font-weight:800;font-size:.85rem;letter-spacing:.03em;line-height:1.25;white-space:nowrap;background:transparent}
+/* блик по буквам промокода: пролёт 2 с, пауза 4 с, цикл 6 с */
+@supports ((-webkit-background-clip:text) or (background-clip:text)){
+  .promo{color:transparent;background-image:linear-gradient(105deg,var(--accent) 0%,var(--accent) 40%,var(--glint) 50%,var(--accent) 60%,var(--accent) 100%);background-size:300% 100%;background-repeat:no-repeat;background-position:0 0;-webkit-background-clip:text;background-clip:text;animation:promoShine 6s linear infinite}
+}
+@keyframes promoShine{0%{background-position:0% 0}33.33%{background-position:100% 0}100%{background-position:100% 0}}
+@media (prefers-reduced-motion:reduce){.promo{animation:none}}
 .promo-row{display:flex;align-items:center;flex-wrap:wrap;gap:.5rem .7rem}
 .promo-row>.opt{flex:1 1 13rem}
 /* тогл-«переключатель» */
@@ -66,7 +72,8 @@ td .promo{display:block;width:fit-content;margin-top:.2rem;font-size:.66rem;padd
 .link{background:none;border:0;padding:.4rem 0;font:inherit;font-weight:700;font-size:.92rem;color:var(--accent);cursor:pointer;text-align:left}
 .link:hover{color:var(--accent-d)}
 .info{flex:none;width:1.15rem;height:1.15rem;border-radius:50%;border:0;background:var(--muted);color:var(--card);font-family:inherit;font-size:.7rem;font-weight:700;line-height:1;cursor:pointer;display:inline-grid;place-items:center;padding:0}
-.tip{font-size:.82rem;color:var(--muted);background:var(--field);border-radius:var(--r);padding:.6rem .75rem;margin:-.1rem 0 .6rem}
+.tip,.desc{font-size:.82rem;color:var(--muted);background:var(--field);border-radius:var(--r);padding:.6rem .75rem;margin:-.1rem 0 .6rem}
+.f>.opts+.desc{margin:.6rem 0 0}
 .sec{padding:1rem 0;border-top:1px solid var(--line)}
 .sec:first-of-type{border-top:0;padding-top:0}
 .stp{display:flex;align-items:center;gap:.6rem}
@@ -120,6 +127,30 @@ tr.sum td{font-weight:800}
 #discBox,#callForm{display:grid;gap:.6rem}
 #discBox{margin-top:.7rem}
 .okmsg{background:var(--accent-soft);border-radius:var(--r);padding:.7rem .85rem;font-size:.85rem;font-weight:600}
+/* предварительная стоимость (экраны 2–5) */
+.est{background:var(--accent-soft);border-radius:var(--r);padding:.7rem .9rem;margin-bottom:1rem}
+.est-l{font-size:.78rem;color:var(--muted);font-weight:600}
+.est-v{font-size:1.2rem;font-weight:800;color:var(--accent);letter-spacing:-.01em;margin-top:.1rem}
+.est-s{font-size:.72rem;color:var(--muted);margin-top:.15rem}
+/* заблюренный результат до ввода номера */
+.sub{display:block;color:var(--muted);font-size:.74rem;font-weight:500;line-height:1.3;margin-top:.1rem}
+table.main th:last-child{text-align:right}
+table.main td:last-child{text-align:right;white-space:nowrap;font-weight:700}
+.blur{font-style:normal;display:inline-block;filter:blur(9px);-webkit-filter:blur(9px);user-select:none;-webkit-user-select:none;pointer-events:none}
+.res.is-locked .unl{display:none!important}
+#total{font-size:1.6rem;display:flex;align-items:center;justify-content:space-between;gap:.6rem 1rem;flex-wrap:wrap}
+.btn.sm{flex:none;min-height:2.6rem;padding:0 1rem;font-size:.9rem}
+#housingPrice{font-weight:800;color:var(--accent)}
+.ht{font-style:normal}
+/* попап «получить точный расчёт» */
+.rng{background:var(--accent-soft);border-radius:var(--r);padding:.6rem .85rem;margin:0 0 .8rem}
+.rng-l{font-size:.78rem;color:var(--muted);font-weight:600}
+.rng-v{font-size:1.25rem;font-weight:800;color:var(--accent);letter-spacing:-.01em}
+.lead-t{margin:0 0 .4rem;font-weight:700;font-size:.95rem}
+.lead-ul{margin:0 0 .8rem;padding:0;list-style:none;display:grid;gap:.3rem}
+.lead-ul li{position:relative;padding-left:1.5rem;font-size:.85rem;font-weight:600;line-height:1.35}
+.lead-ul li::before{content:"";position:absolute;left:.1rem;top:.35rem;width:.55rem;height:.3rem;border-left:2.5px solid var(--accent);border-bottom:2.5px solid var(--accent);transform:rotate(-45deg)}
+#leadForm{display:grid;gap:.6rem}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -127,7 +158,9 @@ tr.sum td{font-weight:800}
 <div class="wrap">
   <div class="top"><span id="stepLabel">Шаг 1 из 5</span><span>Расчёт стоимости</span></div>
   <div class="bar"><i id="bar"></i></div>
-  <div class="card"><div id="stage">
+  <div class="card">
+    <div class="est" id="est" aria-live="polite" hidden><div class="est-l">Предварительная стоимость процедуры</div><div class="est-v" id="estV"></div><div class="est-s">Точный расчёт — на последнем шаге</div></div>
+    <div id="stage">
 
   <!-- ШАГ 1 -->
   <section class="step" data-step="1">
@@ -146,7 +179,8 @@ tr.sum td{font-weight:800}
   <section class="step" data-step="2" hidden>
     <h1>Шаг 2. Ваши кредиторы</h1>
     <div class="f">
-      <div class="lbl">Есть ли долги, которые возникли в результате совершения преступления?<button type="button" class="info" data-tip="Например, ущерб по приговору суда или штрафы по уголовному делу.">i</button></div>
+      <div class="lbl">Есть ли долги, которые возникли в результате совершения преступления?</div>
+      <div class="desc">Например, ущерб по приговору суда или штрафы по уголовному делу, алименты, ущерб от действия мошенников, возмещение вреда, причиненного жизни или здоровью и другие</div>
       <div class="opts row" data-radio="crime" data-opts="yes:Да|no:Нет" data-def="no"></div>
     </div>
     <div class="f">
@@ -189,7 +223,12 @@ tr.sum td{font-weight:800}
   <section class="step" data-step="4" hidden>
     <h1>Шаг 4. Имущество и активы</h1>
     <div class="f">
-      <div class="lbl">Нужно ли защищать имущество (авто, квартира, дом)?<button type="button" class="info" data-tip="Если вы планируете продавать или уже продали имущество, его могут включить в конкурсную массу.">i</button></div>
+      <div class="lbl">Защита единственного жилья</div>
+      <div class="opts row" data-radio="housing" data-opts="no:Нет|yes:Да" data-def="no"></div>
+    </div>
+    <div class="f">
+      <div class="lbl">Нужно ли защищать иное имущество (авто, вторая квартира, дом)?</div>
+      <div class="desc" id="propDesc"></div>
       <div class="opts row" data-radio="propertyProtect" data-opts="no:Нет|yes:Да" data-def="no"></div>
     </div>
     <div class="f">
@@ -207,86 +246,71 @@ tr.sum td{font-weight:800}
       <div class="lbl">Продавали, дарили или передавали другое имущество в последние 3 года?</div>
       <div class="opts row" data-radio="deals3y" data-opts="no:Нет|yes:Да" data-def="no"></div>
     </div>
-    <details open style="margin-top:.6rem">
-      <summary style="cursor:pointer;font-weight:600;font-size:.9rem">Подробнее</summary>
-      <div class="tip" style="margin-top:.5rem">К сделкам относятся: купля-продажа недвижимости и автомобилей, другие крупные сделки (продажа бизнеса, земельных участков), дарение имущества, передача прав на требования. Если вы продали или подарили имущество за 3 года до подачи заявления — это может повлиять на процедуру банкротства.</div>
-    </details>
+    <div class="desc" style="margin-top:.6rem">Дарение недвижимости, автомобилей или долей в бизнесе родственникам или друзьям. Продажа имущества: автомобиль, недвижимость, сделки с земельными участками и другие</div>
     <div class="err"></div>
     <div class="nav"><button type="button" class="btn back" data-prev aria-label="Назад">‹</button><button type="button" class="btn" data-next>Продолжить</button></div>
   </section>
 
   <!-- РЕЗУЛЬТАТ -->
-  <section class="step" data-step="6" hidden>
+  <section class="step res is-locked" id="res" data-step="6" hidden>
+    <button type="button" class="link" data-prev>‹ Изменить ответы</button>
     <div class="plan" id="plan"></div>
 
-    <!-- Тогл семейной акции -->
-    <div style="margin-bottom:.8rem">
+    <!-- Семейная скидка: только для «в браке» и «разведён» -->
+    <div id="famBlock" style="margin-bottom:.8rem" hidden>
       <label class="opt chk"><input type="checkbox" id="famChk"><span>Семейное банкротство (скидка 10%)</span></label>
       <div class="hint" style="margin-top:.3rem">Скидка 10% при заключении двух договоров членами семьи в одном календарном месяце. Депозит АУ (25 000 ₽) не дисконтируется.</div>
     </div>
 
-    <!-- Тогл сохранения жилья -->
+    <!-- Сохранение единственного жилья: текст виден всегда, сумма скрыта до ввода номера -->
     <div style="margin-bottom:.8rem">
-      <label class="opt chk"><input type="checkbox" id="housingChk"><span>Сохранение единственного жилья (+24 000 ₽)</span></label>
+      <label class="opt chk"><input type="checkbox" id="housingChk"><span><i class="ht">Сохранение единственного жилья <b id="housingPrice"></b></i></span></label>
     </div>
 
-    <!-- Промокод -->
-    <div style="margin-bottom:.8rem">
+    <!-- Промокод (после ввода номера) -->
+    <div class="unl" style="margin-bottom:.8rem">
       <div class="promo-row"><label class="opt chk sw"><input type="checkbox" id="promoCode" checked><span>Использовать промокод (−13%)</span></label><span class="promo" data-promo></span></div>
     </div>
 
     <!-- Основная таблица расчёта -->
     <div class="lbl">Детализация расчёта</div>
-    <table><thead><tr><th>Позиция</th><th>Сумма</th><th>Примечание</th></tr></thead><tbody id="sched"></tbody></table>
+    <table class="main"><thead><tr><th>Позиция</th><th>Сумма</th></tr></thead><tbody id="sched"></tbody></table>
 
-    <!-- Описание акции -->
-    <div class="note" id="promoNote" hidden>Скидка 10% предоставляется каждому клиенту при условии заключения двух договоров в одном календарном месяце. Заявление подаётся в суд в течение 14 дней при полном пакете документов. Депозит арбитражного управляющего (25 000 ₽) оплачивается отдельно.</div>
+    <div class="note unl" id="promoNote" hidden>Скидка 10% предоставляется каждому клиенту при условии заключения двух договоров в одном календарном месяце. Заявление подаётся в суд в течение 14 дней при полном пакете документов. Депозит арбитражного управляющего (25 000 ₽) оплачивается отдельно.</div>
 
-    <!-- Информационный блок про нотариуса и депозит -->
-    <div class="note">Дополнительные расходы*: нотариальная доверенность — <b>3 000 ₽*</b>, депозит арбитражного управляющего — <b>25 000 ₽*</b>. Не входят в график платежей, оплачиваются отдельно.<br><br>Рассчитанная стоимость услуг конечная и включает все расходы (при условии, что вы верно заполнили анкету).<br><br>Остались вопросы по расчёту или цена кажется необоснованной — свяжитесь с нами по бесплатному телефону <a href="tel:88003338913">8 (800) 333-89-13</a>.</div>
+    <div class="note unl">Дополнительные расходы*: нотариальная доверенность — <b>3 000 ₽*</b>, депозит арбитражного управляющего — <b>25 000 ₽*</b>. Не входят в график платежей, оплачиваются отдельно.<br><br>Рассчитанная стоимость услуг конечная и включает все расходы (при условии, что вы верно заполнили анкету).<br><br>Остались вопросы по расчёту или цена кажется необоснованной — свяжитесь с нами по телефону <a href="tel:89955806220">8 (995) 580-62-20</a>.</div>
 
-    <!-- Итого -->
+    <!-- Итого (до ввода номера — размытое число + кнопка) -->
     <div class="total" id="total"></div>
 
-    <!-- Кнопки -->
-    <div style="display:flex;gap:.5rem;margin-bottom:1rem">
-      <button type="button" class="btn" id="btnDownload" style="flex:1">Скачать расчёт</button>
-      <button type="button" class="btn" id="btnConsult" style="flex:1">Бесплатная консультация</button>
-    </div>
-
-    <!-- Спойлер с акциями 2+1 -->
-    <details style="margin-bottom:.8rem">
-      <summary style="cursor:pointer;font-weight:700;padding:.5rem 0">Акция «2+1»</summary>
-      <div class="hint" style="margin:.6rem 0">Оплата 2 месяцев сразу, 1 месяц в конце — бесплатно. Итого: 11 платежей вместо 14.</div>
-      <label class="opt chk" style="margin-bottom:.6rem"><input type="checkbox" id="promo21Fam" checked><span>Применить скидку 10% (семейное)</span></label>
-      <div class="promo-row" style="margin-bottom:.6rem"><label class="opt chk sw"><input type="checkbox" id="promoCode21" checked><span>Использовать промокод (−13%)</span></label><span class="promo" data-promo></span></div>
-      <table><thead><tr><th>Месяц</th><th>Сумма</th><th>Статус</th></tr></thead><tbody id="sched21"></tbody></table>
-      <div class="total" id="total21" style="font-size:1.3rem"></div>
-    </details>
-
-    <!-- Спойлер с акциями 4+2 -->
-    <details style="margin-bottom:.8rem">
-      <summary style="cursor:pointer;font-weight:700;padding:.5rem 0">Акция «4+2»</summary>
-      <div class="hint" style="margin:.6rem 0">Оплата 4 месяцев сразу, 2 месяца в конце — бесплатно. Итого: 8 платежей вместо 14.</div>
-      <label class="opt chk" style="margin-bottom:.6rem"><input type="checkbox" id="promo42Fam" checked><span>Применить скидку 10% (семейное)</span></label>
-      <div class="promo-row" style="margin-bottom:.6rem"><label class="opt chk sw"><input type="checkbox" id="promoCode42" checked><span>Использовать промокод (−13%)</span></label><span class="promo" data-promo></span></div>
-      <table><thead><tr><th>Месяц</th><th>Сумма</th><th>Статус</th></tr></thead><tbody id="sched42"></tbody></table>
-      <div class="total" id="total42" style="font-size:1.3rem"></div>
-    </details>
-
-    <!-- Заявка -->
-    <div class="disc">
-      <div class="promo-row"><label class="opt chk sw"><input type="checkbox" id="discChk" checked><span>Промокод применён</span></label><span class="promo" data-promo></span></div>
-      <div id="discBox">
-        <input type="text" id="discPhone" inputmode="numeric" autocomplete="off" aria-label="Номер телефона">
-        <div class="hint">Отправим промокод в СМС на номер.</div>
-        <label class="opt chk"><input type="checkbox" id="discConsent"><span>Согласен на обработку персональных данных</span></label>
-        <button type="button" class="link" data-dlg="dlgPd">Политика обработки персональных данных</button>
+    <!-- Всё ниже доступно только после ввода номера -->
+    <div class="unl">
+      <div style="display:flex;gap:.5rem;margin-bottom:.4rem">
+        <button type="button" class="btn" id="btnDownload" style="flex:1">Скачать документ</button>
+        <button type="button" class="btn" id="btnConsult" style="flex:1">Консультация юриста</button>
       </div>
-      <div class="okmsg" id="discOk" hidden style="margin-top:.6rem"></div>
+      <div class="err" id="pdfErr" role="alert"></div>
+
+      <details style="margin-bottom:.8rem">
+        <summary style="cursor:pointer;font-weight:700;padding:.5rem 0">Акция «2+1»</summary>
+        <div class="hint" style="margin:.6rem 0">Оплата 2 месяцев сразу, 1 месяц в конце — бесплатно. Итого: 11 платежей вместо 14.</div>
+        <label class="opt chk" id="fam21Wrap" style="margin-bottom:.6rem"><input type="checkbox" id="promo21Fam" checked><span>Применить скидку 10% (семейное)</span></label>
+        <div class="promo-row" style="margin-bottom:.6rem"><label class="opt chk sw"><input type="checkbox" id="promoCode21" checked><span>Использовать промокод (−13%)</span></label><span class="promo" data-promo></span></div>
+        <table><thead><tr><th>Месяц</th><th>Сумма</th><th>Статус</th></tr></thead><tbody id="sched21"></tbody></table>
+        <div class="total" id="total21" style="font-size:1.3rem"></div>
+      </details>
+
+      <details style="margin-bottom:.8rem">
+        <summary style="cursor:pointer;font-weight:700;padding:.5rem 0">Акция «4+2»</summary>
+        <div class="hint" style="margin:.6rem 0">Оплата 4 месяцев сразу, 2 месяца в конце — бесплатно. Итого: 8 платежей вместо 14.</div>
+        <label class="opt chk" id="fam42Wrap" style="margin-bottom:.6rem"><input type="checkbox" id="promo42Fam" checked><span>Применить скидку 10% (семейное)</span></label>
+        <div class="promo-row" style="margin-bottom:.6rem"><label class="opt chk sw"><input type="checkbox" id="promoCode42" checked><span>Использовать промокод (−13%)</span></label><span class="promo" data-promo></span></div>
+        <table><thead><tr><th>Месяц</th><th>Сумма</th><th>Статус</th></tr></thead><tbody id="sched42"></tbody></table>
+        <div class="total" id="total42" style="font-size:1.3rem"></div>
+      </details>
+
+      <button type="button" class="link" id="restart" style="margin-top:.2rem">Рассчитать заново</button>
     </div>
-    <div class="nav"><button type="button" class="btn back" data-prev aria-label="Назад">‹</button><button type="button" class="btn" id="discSend" disabled>Отправить</button></div>
-    <button type="button" class="link" id="restart" style="margin-top:.6rem">Рассчитать заново</button>
   </section>
 
   <!-- СТОП -->
@@ -304,7 +328,7 @@ tr.sum td{font-weight:800}
     </div>
     <div style="font-size:.72rem;margin-top:.4rem;color:var(--muted)">* — цены могут незначительно меняться в зависимости от региона, указаны средние по РФ значения</div>
     <details><summary>Реквизиты организации</summary>
-      <div>ООО «Тест» (тестовые данные)<br>ИНН 7700000000 · КПП 770001001<br>ОГРН 1000000000000<br>Юр. адрес: 101000, г. Москва, ул. Тестовая, д. 1, офис 1<br>Тел.: 8 (800) 333-89-13<br>E-mail: info@example.ru</div>
+      <div>ООО «Тест» (тестовые данные)<br>ИНН 7700000000 · КПП 770001001<br>ОГРН 1000000000000<br>Юр. адрес: 101000, г. Москва, ул. Тестовая, д. 1, офис 1<br>Тел.: 8 (995) 580-62-20<br>E-mail: info@example.ru</div>
     </details>
   </footer>
 </div>
@@ -321,27 +345,26 @@ tr.sum td{font-weight:800}
   <button type="button" class="btn ghost" data-close>Закрыть</button></dialog>
 <dialog id="dlgPrivacy"><h2>Политика конфиденциальности</h2><p>Тестовый текст. Здесь будет политика конфиденциальности: какие данные собираются на сайте (в том числе через Яндекс Метрику и cookie), для чего и как долго они хранятся.</p><button type="button" class="btn" data-close>Закрыть</button></dialog>
 <dialog id="dlgPd"><h2>Политика обработки персональных данных</h2><p>Тестовый текст. Здесь будет политика обработки персональных данных в соответствии с 152-ФЗ: оператор, цели, перечень данных, сроки, права субъекта.</p><button type="button" class="btn" data-close>Закрыть</button></dialog>
-<dialog id="dlgPdf"><h2>Скачать расчёт</h2>
-  <div id="pdfForm" style="display:grid;gap:.6rem">
-    <input type="text" id="pdfPhone" inputmode="numeric" autocomplete="off" aria-label="Номер телефона">
-    <label class="opt chk"><input type="checkbox" id="pdfConsent"><span>Согласен на обработку персональных данных</span></label>
-    <div id="pdfSummary" class="note" style="margin:0"></div>
+<dialog id="dlgLead"><h2>Ваш расчёт готов</h2>
+  <div class="rng"><div class="rng-l">Примерная стоимость процедуры</div><div class="rng-v" id="leadRange"></div></div>
+  <p class="lead-t">Оставьте номер телефона и вы сразу получите:</p>
+  <ul class="lead-ul">
+    <li>Точную стоимость процедуры</li>
+    <li>PDF-файл с подробными расчётами</li>
+    <li>Персональный промокод на скидку 13% (привязан к указанному номеру)</li>
+    <li>Бесплатную консультацию с юристом</li>
+  </ul>
+  <div id="leadForm">
+    <input type="text" id="leadPhone" inputmode="numeric" autocomplete="off" aria-label="Номер телефона">
+    <label class="opt chk"><input type="checkbox" id="leadConsent"><span>Согласен на обработку персональных данных</span></label>
     <button type="button" class="link" data-dlg="dlgPd">Политика обработки персональных данных</button>
-    <div class="err" id="pdfErr" role="alert"></div>
-    <button type="button" class="btn" id="pdfSend" disabled>Скачать PDF</button>
+    <button type="button" class="btn" id="leadSend" disabled>Получить точный расчёт</button>
   </div>
   <button type="button" class="btn ghost" data-close>Закрыть</button></dialog>
-<dialog id="dlgConsult"><h2>Бесплатная консультация юриста</h2>
-  <p style="margin:0 0 .8rem;color:var(--muted)">Оставьте номер телефона — юрист перезвонит и ответит на все вопросы по банкротству.</p>
-  <div id="consultForm" style="display:grid;gap:.6rem">
-    <input type="text" id="consultPhone" inputmode="numeric" autocomplete="off" aria-label="Номер телефона">
-    <label class="opt chk"><input type="checkbox" id="consultConsent"><span>Согласен на обработку персональных данных</span></label>
-    <div id="consultSummary" class="note" style="margin:0"></div>
-    <button type="button" class="link" data-dlg="dlgPd">Политика обработки персональных данных</button>
-    <button type="button" class="btn" id="consultSend" disabled>Отправить</button>
-  </div>
-  <div class="okmsg" id="consultOk" hidden>Спасибо! Юрист скоро свяжется с вами.</div>
-  <button type="button" class="btn ghost" data-close>Закрыть</button></dialog>
+<dialog id="dlgConsult"><h2>Консультация юриста</h2>
+  <p style="margin:0 0 .4rem;font-size:.95rem">Спасибо! С вами свяжется специалист по указанному номеру:</p>
+  <p style="margin:0 0 .4rem;font-size:1.2rem;font-weight:800;color:var(--accent)" id="consultNum"></p>
+  <button type="button" class="btn" data-close>Хорошо</button></dialog>
 <div id="cookie" role="dialog" aria-label="Уведомление о cookie"><span>Мы используем файлы cookie и Яндекс Метрику для работы сайта и анализа посещаемости. Подробнее — в <button type="button" class="ln" data-dlg="dlgPrivacy">политике конфиденциальности</button>.</span><button type="button" class="ckb" id="ckOk">ОК</button></div>
 
 <script>
@@ -364,7 +387,10 @@ const EXTRA_SERVICE_PRICES = {
 };
 const NOTARY = 3000;
 const COURT_DEPOSIT = 25000;
-const PROMO_CODE = 'ЦИФРАТРИНАДЦАТЬ'; // текст промокода: меняется только здесь
+const PROMO_CODE = 'ВАА132026'; // текст промокода: меняется только здесь
+const EST_MINUS = 0.27, EST_PLUS = 0.39; // предварительный диапазон: реальная цена −27% … +39%
+let leadPhone = '', leadPhoneView = ''; // номер из итогового попапа (пусто — результат закрыт)
+let famWasEligible = null;
 
 /* ========= Google Форма (все ответы) =========
    action: https://docs.google.com/forms/d/e/<FORM_ID>/formResponse
@@ -571,9 +597,20 @@ const MARITAL_LABEL = {married:'Состою в браке', single:'Холос�
 const BUSINESS_LABEL = {none:'Нет', ip:'Только ИП', ooo:'Только ООО', both:'ИП + ООО'};
 
 /* Вариант с акцией: mode = '2+1' | '4+2' */
+const familyEligible = () => ['married', 'divorced'].includes(val('marital'));
+/* показывает/прячет опции «−10% семейным» и сбрасывает их, если семейное положение не подходит */
+function syncFamily() {
+  const ok = familyEligible();
+  if (ok !== famWasEligible) {
+    if (!ok) { $('#famChk').checked = false; $('#promo21Fam').checked = false; $('#promo42Fam').checked = false; }
+    else { $('#promo21Fam').checked = true; $('#promo42Fam').checked = true; }
+    famWasEligible = ok;
+  }
+  $('#famBlock').hidden = !ok; $('#fam21Wrap').hidden = !ok; $('#fam42Wrap').hidden = !ok;
+}
 function promoVariant(mode, famSel, codeSel) {
   const c = calc();
-  const fam = $(famSel).checked, code = $(codeSel).checked;
+  const fam = familyEligible() && $(famSel).checked, code = $(codeSel).checked;
   let totalBase = c.baseMonthlyPayment * TERM_MONTHS + c.costDop;
   if (fam) totalBase -= Math.round(totalBase * 0.10);
   const monthly = Math.ceil(totalBase / TERM_MONTHS / 100) * 100;
@@ -589,16 +626,17 @@ function promoVariant(mode, famSel, codeSel) {
   };
 }
 function computeOffer() {
+  syncFamily();
   const c = calc();
   const rows = [
     {label: 'Тариф', amount: c.tier.label, note: 'по сумме долга', kind: 'text'},
     {label: 'Базовая стоимость', amount: c.basePrice, note: 'по прайсу'},
     {label: 'Базовый платёж/мес', amount: c.baseMonthlyPayment, note: '₽'}
   ];
-  if (c.propertyProtect) rows.push({label: 'Защита имущества', amount: EXTRA_SERVICE_PRICES.propertyProtection, note: 'недвижимость, транспорт'});
+  if (c.propertyProtect) rows.push({label: 'Защита иного имущества', amount: EXTRA_SERVICE_PRICES.propertyProtection, note: 'авто, вторая квартира, дом'});
   if (c.business === 'ip' || c.business === 'ooo') rows.push({label: 'ИП / ООО', amount: 40000, note: 'влияет на процедуру'});
   else if (c.business === 'both') rows.push({label: 'ИП + ООО', amount: 80000, note: 'влияет на процедуру'});
-  if ($('#housingChk').checked) rows.push({label: 'Сохранение жилья', amount: EXTRA_SERVICE_PRICES.singleHousing, note: 'единственное жильё'});
+  if ($('#housingChk').checked) rows.push({label: 'Защита единственного жилья', amount: EXTRA_SERVICE_PRICES.singleHousing, note: 'единственное жильё'});
   rows.push({label: 'ЕФРСБ публикации*', amount: EXTRA_SERVICE_PRICES.efrsbPublications, note: 'обязательные'});
   if (c.familyDiscountPercent > 0) rows.push({label: 'Скидка «Семья-10%»', amount: c.discountPercentRub, note: '−' + c.discountPercentRub.toLocaleString('ru-RU') + ' ₽', kind: 'discount'});
   const promoActive = $('#promoCode').checked;
@@ -618,16 +656,29 @@ function renderPromoBlock(p, schedSel, totalSel) {
   renderScheduleTable(schedSel, p.rows, p.total);
   $(totalSel).innerHTML = 'Итого с акцией: ' + fmt(p.total) + '<div style="font-size:.8rem;color:var(--muted);font-weight:600">Выгода: ' + fmt(p.saving) + ' (' + p.pct + '%)</div>';
 }
+/* Размытые «заглушки»: в закрытом режиме реальные суммы в страницу не попадают, только случайные числа */
+function ghost(len) { let n = String(1 + Math.floor(Math.random() * 9)); for (let i = 1; i < len; i++) n += Math.floor(Math.random() * 10); return fmt(+n); }
+const blurSpan = t => '<i class="blur" aria-hidden="true">' + t + '</i>';
 function render() {
-  const o = computeOffer();
-  $('#sched').innerHTML = o.rows.map(r => '<tr><td>' + r.label + (r.promo ? ' <span class="promo">' + PROMO_CODE + '</span>' : '') + '</td><td>' + (r.kind === 'text' ? r.amount : fmt(r.amount)) + '</td><td>' + r.note + '</td></tr>').join('') +
-    '<tr class="sum"><td>Итоговый платёж/мес</td><td>' + fmt(o.monthly) + '</td><td>' + TERM_MONTHS + ' мес.</td></tr>' +
-    '<tr class="sum"><td>Итого за срок</td><td>' + fmt(o.total) + '</td><td></td></tr>';
-  $('#plan').innerHTML = 'Ваш тарифный план: <b>' + o.c.tier.label + '</b>, срок ' + TERM_MONTHS + ' мес.';
-  $('#total').textContent = 'Итого: ' + fmt(o.total);
-  $('#promoNote').hidden = !$('#famChk').checked;
-  renderPromoBlock(o.p21, '#sched21', '#total21');
-  renderPromoBlock(o.p42, '#sched42', '#total42');
+  const o = computeOffer(), L = !leadPhone;
+  const money = (a, len) => L ? blurSpan(ghost(len)) : fmt(a);
+  const sub = t => t ? '<span class="sub">' + t + '</span>' : '';
+  $('#sched').innerHTML = o.rows.filter(r => !(L && r.promo)).map(r => {
+    const neg = r.kind === 'discount' ? '−' : '';
+    const amount = r.kind === 'text' ? (L ? blurSpan('До ' + ghost(7)) : r.amount) : (L ? blurSpan(neg + ghost(5)) : neg + fmt(r.amount));
+    const note = (r.note === '₽' || (r.kind === 'discount' && /₽/.test(r.note))) ? '' : r.note;
+    return '<tr><td>' + r.label + (r.promo ? ' <span class="promo">' + PROMO_CODE + '</span>' : '') + sub(note) + '</td><td>' + amount + '</td></tr>';
+  }).join('') +
+    '<tr class="sum"><td>Итоговый платёж/мес' + sub(TERM_MONTHS + ' мес.') + '</td><td>' + money(o.monthly, 5) + '</td></tr>' +
+    '<tr class="sum"><td>Итого за срок</td><td>' + money(o.total, 6) + '</td></tr>';
+  $('#plan').innerHTML = 'Ваш тарифный план: <b>' + (L ? blurSpan('До ' + ghost(7)) : o.c.tier.label) + '</b>, срок ' + TERM_MONTHS + ' мес.';
+  $('#housingPrice').innerHTML = '(+' + (L ? blurSpan(ghost(5)) : EXTRA_SERVICE_PRICES.singleHousing.toLocaleString('ru-RU') + ' ₽') + ')';
+  $('#total').innerHTML = L
+    ? '<span>Итого: ' + blurSpan(ghost(6)) + '</span><button type="button" class="btn sm" data-lead>Получить точный расчёт</button>'
+    : 'Итого: ' + fmt(o.total);
+  $('#promoNote').hidden = L || !$('#famChk').checked;
+  if (L) { ['#sched21', '#sched42', '#total21', '#total42'].forEach(x => { $(x).innerHTML = ''; }); }
+  else { renderPromoBlock(o.p21, '#sched21', '#total21'); renderPromoBlock(o.p42, '#sched42', '#total42'); }
 }
 /* Обработчики тоглов — пересчёт при переключении */
 $('#famChk').addEventListener('change', render);
@@ -637,6 +688,24 @@ $('#promo42Fam').addEventListener('change', render);
 $('#promoCode').addEventListener('change', render);
 $('#promoCode21').addEventListener('change', render);
 $('#promoCode42').addEventListener('change', render);
+
+/* ========= Предварительная стоимость (экраны 2–5) и итоговый диапазон ========= */
+$('#propDesc').textContent = 'Если вы планируете продавать или уже продали имущество, его могут включить в конкурсную массу. Расчёт такой: единственное жильё +' + Math.round(EXTRA_SERVICE_PRICES.singleHousing / 1000) + ' тыс., иное имущество +' + Math.round(EXTRA_SERVICE_PRICES.propertyProtection / 1000) + ' тыс.';
+const round10k = n => Math.round(n / 10000) * 10000;
+function estimateRange() {
+  const real = computeOffer().total;
+  return {lo: round10k(real * (1 - EST_MINUS)), hi: round10k(real * (1 + EST_PLUS))};
+}
+const nb = t => t.replace(/[\s\u202F]/g, '\u00A0');
+const fmtRange = r => nb(r.lo.toLocaleString('ru-RU')) + ' – ' + nb(fmt(r.hi));
+function updateEst() { if (state.debt) $('#estV').textContent = fmtRange(estimateRange()); }
+/* ответ про единственное жильё на шаге 4 включает/выключает опцию в результате */
+document.addEventListener('change', e => {
+  const t = e.target; if (!t.matches || !t.matches('input[type="radio"]')) return;
+  if (t.name === 'housing') $('#housingChk').checked = t.value === 'yes';
+  updateEst();
+});
+$('#housingChk').addEventListener('change', updateEst);
 
 /* ========= Телефон: маска +7(XXX)XXX-XX-XX, первая цифра 9 уже стоит, только цифры, без вставки ========= */
 const fmtPhone = u => { let r = '+7(' + u.slice(0, 3); if (u.length > 3) r += ')' + u.slice(3, 6); if (u.length > 6) r += '-' + u.slice(6, 8); if (u.length > 8) r += '-' + u.slice(8, 10); return r; };
@@ -699,17 +768,21 @@ $('#callSend').addEventListener('click', () => {
   send({callbackPhone: phoneE164($('#callPhone')), debt: debtEl.value});
   $('#callForm').hidden = true; $('#callOk').hidden = false; goal('callback_sent');
 });
-/* Финальная кнопка: при включённой скидке активна только с валидным номером и согласием; при выключенной — всегда */
-const discChk = $('#discChk'), discBtn = $('#discSend'), discPh = $('#discPhone'), discCons = $('#discConsent'), discOk = $('#discOk');
-const updDisc = () => { discBtn.disabled = discChk.checked && !(phoneValid(discPh) && discCons.checked); discOk.hidden = true; };
-initPhone(discPh, updDisc); discCons.addEventListener('change', updDisc);
-discChk.addEventListener('change', () => { $('#discBox').hidden = !discChk.checked; updDisc(); });
-updDisc();
-discBtn.addEventListener('click', () => {
-  discountPhone = discChk.checked ? phoneE164(discPh) : ''; lastHash = ''; submitForm();
-  discOk.textContent = discountPhone ? 'Готово! Отправим промокод в СМС на ' + discPh.value + '.' : 'Заявка отправлена. Спасибо!';
-  discOk.hidden = false; discBtn.disabled = true; goal(discountPhone ? 'lead_sent_phone' : 'lead_sent_nophone');
-});
+/* ========= Итоговый попап: номер → точный расчёт ========= */
+const openLead = () => { $('#leadRange').textContent = fmtRange(estimateRange()); $('#dlgLead').showModal(); };
+(function () {
+  const inp = $('#leadPhone'), chk = $('#leadConsent'), btn = $('#leadSend');
+  const upd = () => { btn.disabled = !(phoneValid(inp) && chk.checked); };
+  initPhone(inp, upd); chk.addEventListener('change', upd); // галочка согласия по умолчанию не стоит
+  btn.addEventListener('click', () => {
+    leadPhone = phoneE164(inp); leadPhoneView = inp.value;
+    discountPhone = leadPhone; lastHash = '';
+    $('#dlgLead').close();
+    $('#res').classList.remove('is-locked'); render(); submitForm();
+    goal('lead_sent_phone'); window.scrollTo(0, 0);
+  });
+})();
+document.addEventListener('click', e => { if (e.target.closest('[data-lead]')) openLead(); });
 
 /* ========= Валидация и стоп-условия ========= */
 const VALID = {
@@ -736,7 +809,7 @@ async function go(to) {
   busy = true;
   const dir = to > cur ? 1 : -1, out = steps[cur], inn = steps[to];
   $$('.tip').forEach(x => x.remove());
-  if (to === 5) { render(); submitForm(); }
+  if (to === 5) { $('#res').classList.toggle('is-locked', !leadPhone); render(); submitForm(); }
   if (to === STOP) $('#stopBody').innerHTML = stopReasons().map(k => `<p class="sp">${STOPS[k]}</p>`).join('');
   if (!reduce) await out.animate(
     [{opacity: 1, transform: 'translate3d(0,0,0)'}, {opacity: 0, transform: `translate3d(${-dir * 24}px,0,0)`}],
@@ -747,10 +820,12 @@ async function go(to) {
   label.textContent = to === 5 ? 'Результат' : to === STOP ? 'Расчёт невозможен' : `Шаг ${to + 1} из 5`;
   goal(to === STOP ? 'stop' : 'step_' + (to + 1));
   cur = to;
+  $('#est').hidden = !(to >= 1 && to <= 4); if (!$('#est').hidden) updateEst();
   if (!reduce) await inn.animate(
     [{opacity: 0, transform: `translate3d(${dir * 24}px,0,0)`}, {opacity: 1, transform: 'translate3d(0,0,0)'}],
     {duration: 300, easing: 'cubic-bezier(.22,1,.36,1)'}).finished;
   busy = false;
+  if (to === 5 && !leadPhone) openLead();
 }
 document.addEventListener('click', e => {
   if (e.target.closest('[data-next]')) {
@@ -773,56 +848,13 @@ try { accepted = localStorage.getItem('ck') === '1'; } catch (e) {}
 if (!accepted) setTimeout(() => ck.classList.add('on'), 700);
 $('#ckOk').addEventListener('click', () => { ck.classList.remove('on'); try { localStorage.setItem('ck', '1'); } catch (e) {} });
 
-/* ========= Попапы: кнопки Скачать / Консультация ========= */
-// Функции форматирования телефона уже объявлены выше (initPhone и т.д.)
-
-function buildSummary() {
-  const o = computeOffer();
-  return {
-    main: fmt(o.total),
-    mainMonthly: fmt(o.monthly),
-    tariff: o.c.tier.label,
-    debt: fmt(state.debt),
-    promo21_total: fmt(o.p21.total),
-    promo21_saving: fmt(o.p21.saving),
-    promo42_total: fmt(o.p42.total),
-    promo42_saving: fmt(o.p42.saving)
-  };
-}
-
-// PDF попап
-(function () {
-  const inp = $('#pdfPhone'), chk = $('#pdfConsent'), btn = $('#pdfSend');
-  const upd = () => { btn.disabled = !(phoneValid(inp) && chk.checked); };
-  initPhone(inp, upd); chk.addEventListener('change', upd);
-  $('#btnDownload').addEventListener('click', () => {
-    const s = buildSummary();
-    $('#pdfSummary').innerHTML = '<b>Ваш расчёт:</b><br>Основной тариф: ' + s.main + ' (' + s.mainMonthly + '/мес)<br>Акция 2+1: ' + s.promo21_total + ' (выгода ' + s.promo21_saving + ')<br>Акция 4+2: ' + s.promo42_total + ' (выгода ' + s.promo42_saving + ')';
-    $('#dlgPdf').showModal();
-  });
-  $('#pdfSend').addEventListener('click', async () => {
-    btn.disabled = true;
-    send({callbackPhone: phoneE164($('#pdfPhone')), debt: debtEl.value});
-    if (await generatePDF()) { $('#dlgPdf').close(); goal('pdf_downloaded'); }
-    upd();
-  });
-})();
-
-// Консультация попап
-(function () {
-  const inp = $('#consultPhone'), chk = $('#consultConsent'), btn = $('#consultSend');
-  const upd = () => { btn.disabled = !(phoneValid(inp) && chk.checked); };
-  initPhone(inp, upd); chk.addEventListener('change', upd);
-  $('#btnConsult').addEventListener('click', () => {
-    const s = buildSummary();
-    $('#consultSummary').innerHTML = '<b>Ваш расчёт:</b><br>Тариф: ' + s.tariff + '<br>Сумма долга: ' + s.debt + '<br>Основной платёж: ' + s.mainMonthly + '/мес<br>2+1: ' + s.promo21_total + '<br>4+2: ' + s.promo42_total;
-    $('#dlgConsult').showModal();
-  });
-  $('#consultSend').addEventListener('click', () => {
-    send({callbackPhone: phoneE164($('#consultPhone')), debt: debtEl.value});
-    $('#consultForm').hidden = true; $('#consultOk').hidden = false; goal('consult_sent');
-  });
-})();
+/* ========= Кнопки результата (доступны после ввода номера) ========= */
+$('#btnDownload').addEventListener('click', async () => { if (await generatePDF()) goal('pdf_downloaded'); });
+$('#btnConsult').addEventListener('click', () => {
+  $('#consultNum').textContent = leadPhoneView;
+  send({callbackPhone: leadPhone, debt: debtEl.value});
+  $('#dlgConsult').showModal(); goal('consult_sent');
+});
 
 /* =====================================================================
    PDF «Коммерческое предложение» (pdfmake, шрифт Roboto — кириллица и ₽)
@@ -838,7 +870,7 @@ const PDF_CFG = {
   subtitle: 'Расчёт стоимости банкротства физического лица',
   company: 'ООО «ЮРИСТ ДЛЯ НАРОДА»',            // организация (подвал)
   partner: 'Артём Андреевич В.',                // имя партнёра (подвал)
-  phone: '8 (800) 333-89-13',
+  phone: '8 (995) 580-62-20',
   phoneNote: 'Бесплатная консультация',
   footerBefore: 'Сообщите промокод',              // текст подвала: «…» [промокод] «…»
   footerAfter: 'или имя партнёра:',
@@ -1085,10 +1117,10 @@ function collectPdfData() {
     params: [
       ['Регион', regEl.value || '—'],
       ['Семейное положение', MARITAL_LABEL[val('marital')] || '—'],
-      ['Защита имущества', yesNo(val('propertyProtect') === 'yes')],
+      ['Защита иного имущества', yesNo(val('propertyProtect') === 'yes')],
       ['ИП / ООО', BUSINESS_LABEL[val('business')] || '—'],
       ['Сделки за 3 года', yesNo(val('deals3y') === 'yes')],
-      ['Сохранение жилья', yesNo($('#housingChk').checked)],
+      ['Защита единственного жилья', yesNo($('#housingChk').checked)],
       ['Семейная скидка', yesNo($('#famChk').checked) + (($('#famChk').checked) ? ' (−10%)' : '')],
       ['Промокод', o.promoActive ? {columns: [pdfChip(false, 8)]} : 'Не применён']
     ]
