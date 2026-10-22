@@ -11,8 +11,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap&subset=cyrillic" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.4/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.12/build/pdfmake.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.12/build/vfs_fonts.js" defer></script>
 <style>
 :root{
   --bg:#f6f7f9; --card:#fff; --field:#f1f2f5; --line:#e4e6ec;
@@ -53,6 +53,16 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appear
 .opt input:focus-visible+span{outline:2px solid var(--accent);outline-offset:2px}
 .opt.chk span::before{border-radius:6px}
 .opt.chk input:checked+span::before{box-shadow:inset 0 0 0 3px var(--accent-soft)}
+.promo{display:inline-block;flex:none;color:var(--accent);border:1.5px solid var(--accent);border-radius:8px;padding:.18rem .55rem;font-weight:800;font-size:.85rem;letter-spacing:.03em;line-height:1.25;white-space:nowrap;background:transparent}
+.promo-row{display:flex;align-items:center;flex-wrap:wrap;gap:.5rem .7rem}
+.promo-row>.opt{flex:1 1 13rem}
+/* тогл-«переключатель» */
+.opt.sw span{position:relative;padding-left:3.9rem}
+.opt.sw span::before,.opt.sw.chk input:checked+span::before{content:"";position:absolute;left:.85rem;top:50%;width:2.15rem;height:1.2rem;border-radius:99px;border:0;background:var(--muted);box-shadow:none;transform:translateY(-50%);transition:background .2s}
+.opt.sw span::after{content:"";position:absolute;left:calc(.85rem + 3px);top:50%;width:.95rem;height:.95rem;border-radius:50%;background:#fff;transform:translateY(-50%);transition:transform .2s}
+.opt.sw.chk input:checked+span::before{background:var(--accent)}
+td .promo{display:block;width:fit-content;margin-top:.2rem;font-size:.66rem;padding:.08rem .4rem;border-width:1.5px;border-radius:6px}
+.opt.sw input:checked+span::after{transform:translate(.95rem,-50%)}
 .link{background:none;border:0;padding:.4rem 0;font:inherit;font-weight:700;font-size:.92rem;color:var(--accent);cursor:pointer;text-align:left}
 .link:hover{color:var(--accent-d)}
 .info{flex:none;width:1.15rem;height:1.15rem;border-radius:50%;border:0;background:var(--muted);color:var(--card);font-family:inherit;font-size:.7rem;font-weight:700;line-height:1;cursor:pointer;display:inline-grid;place-items:center;padding:0}
@@ -222,7 +232,7 @@ tr.sum td{font-weight:800}
 
     <!-- Промокод -->
     <div style="margin-bottom:.8rem">
-      <label class="opt chk"><input type="checkbox" id="promoCode" checked><span>Промокод ЦИФРАТРИНАДЦАТЬ (−13%)</span></label>
+      <div class="promo-row"><label class="opt chk sw"><input type="checkbox" id="promoCode" checked><span>Использовать промокод (−13%)</span></label><span class="promo" data-promo></span></div>
     </div>
 
     <!-- Основная таблица расчёта -->
@@ -249,7 +259,7 @@ tr.sum td{font-weight:800}
       <summary style="cursor:pointer;font-weight:700;padding:.5rem 0">Акция «2+1»</summary>
       <div class="hint" style="margin:.6rem 0">Оплата 2 месяцев сразу, 1 месяц в конце — бесплатно. Итого: 11 платежей вместо 14.</div>
       <label class="opt chk" style="margin-bottom:.6rem"><input type="checkbox" id="promo21Fam" checked><span>Применить скидку 10% (семейное)</span></label>
-      <label class="opt chk" style="margin-bottom:.6rem"><input type="checkbox" id="promoCode21" checked><span>Промокод ЦИФРАТРИНАДЦАТЬ (−13%)</span></label>
+      <div class="promo-row" style="margin-bottom:.6rem"><label class="opt chk sw"><input type="checkbox" id="promoCode21" checked><span>Использовать промокод (−13%)</span></label><span class="promo" data-promo></span></div>
       <table><thead><tr><th>Месяц</th><th>Сумма</th><th>Статус</th></tr></thead><tbody id="sched21"></tbody></table>
       <div class="total" id="total21" style="font-size:1.3rem"></div>
     </details>
@@ -259,14 +269,14 @@ tr.sum td{font-weight:800}
       <summary style="cursor:pointer;font-weight:700;padding:.5rem 0">Акция «4+2»</summary>
       <div class="hint" style="margin:.6rem 0">Оплата 4 месяцев сразу, 2 месяца в конце — бесплатно. Итого: 8 платежей вместо 14.</div>
       <label class="opt chk" style="margin-bottom:.6rem"><input type="checkbox" id="promo42Fam" checked><span>Применить скидку 10% (семейное)</span></label>
-      <label class="opt chk" style="margin-bottom:.6rem"><input type="checkbox" id="promoCode42" checked><span>Промокод ЦИФРАТРИНАДЦАТЬ (−13%)</span></label>
+      <div class="promo-row" style="margin-bottom:.6rem"><label class="opt chk sw"><input type="checkbox" id="promoCode42" checked><span>Использовать промокод (−13%)</span></label><span class="promo" data-promo></span></div>
       <table><thead><tr><th>Месяц</th><th>Сумма</th><th>Статус</th></tr></thead><tbody id="sched42"></tbody></table>
       <div class="total" id="total42" style="font-size:1.3rem"></div>
     </details>
 
     <!-- Заявка -->
     <div class="disc">
-      <label class="opt chk"><input type="checkbox" id="discChk" checked><span>Промокод ЦИФРАТРИНАДЦАТЬ применён</span></label>
+      <div class="promo-row"><label class="opt chk sw"><input type="checkbox" id="discChk" checked><span>Промокод применён</span></label><span class="promo" data-promo></span></div>
       <div id="discBox">
         <input type="text" id="discPhone" inputmode="numeric" autocomplete="off" aria-label="Номер телефона">
         <div class="hint">Отправим промокод в СМС на номер.</div>
@@ -317,6 +327,7 @@ tr.sum td{font-weight:800}
     <label class="opt chk"><input type="checkbox" id="pdfConsent"><span>Согласен на обработку персональных данных</span></label>
     <div id="pdfSummary" class="note" style="margin:0"></div>
     <button type="button" class="link" data-dlg="dlgPd">Политика обработки персональных данных</button>
+    <div class="err" id="pdfErr" role="alert"></div>
     <button type="button" class="btn" id="pdfSend" disabled>Скачать PDF</button>
   </div>
   <button type="button" class="btn ghost" data-close>Закрыть</button></dialog>
@@ -353,6 +364,7 @@ const EXTRA_SERVICE_PRICES = {
 };
 const NOTARY = 3000;
 const COURT_DEPOSIT = 25000;
+const PROMO_CODE = 'ЦИФРАТРИНАДЦАТЬ'; // текст промокода: меняется только здесь
 
 /* ========= Google Форма (все ответы) =========
    action: https://docs.google.com/forms/d/e/<FORM_ID>/formResponse
@@ -375,6 +387,7 @@ const goal = n => { try { if (METRIKA_ID && window.ym) ym(METRIKA_ID, 'reachGoal
 
 const $ = (s, r=document) => r.querySelector(s);
 const $$ = (s, r=document) => [...r.querySelectorAll(s)];
+$$('[data-promo]').forEach(e => e.textContent = PROMO_CODE);
 const fmt = n => Math.round(n).toLocaleString('ru-RU') + ' ₽';
 const state = {debt: 0};
 
@@ -553,72 +566,68 @@ function calcWithPromo(base, promoActive) {
     return { total: totalWith, extra, promoActive: false, label: '+13% (+' + fmt(extra) + ')' };
   }
 }
-function render() {
+/* ========= Единый расчёт предложения (используют экран, попап и PDF) ========= */
+const MARITAL_LABEL = {married:'Состою в браке', single:'Холост/не замужем', divorced:'Разведён/разведена', widow:'Вдова/вдовец'};
+const BUSINESS_LABEL = {none:'Нет', ip:'Только ИП', ooo:'Только ООО', both:'ИП + ООО'};
+
+/* Вариант с акцией: mode = '2+1' | '4+2' */
+function promoVariant(mode, famSel, codeSel) {
   const c = calc();
-  // Основная таблица расчёта
-  let rows = [
-    ['Тариф', c.tier.label, 'по сумме долга'],
-    ['Базовая стоимость', c.basePrice, 'по прайсу'],
-    ['Базовый платёж/мес', c.baseMonthlyPayment, '₽'],
+  const fam = $(famSel).checked, code = $(codeSel).checked;
+  let totalBase = c.baseMonthlyPayment * TERM_MONTHS + c.costDop;
+  if (fam) totalBase -= Math.round(totalBase * 0.10);
+  const monthly = Math.ceil(totalBase / TERM_MONTHS / 100) * 100;
+  const promo = calcWithPromo(monthly * TERM_MONTHS, code);
+  const monthlyFinal = Math.ceil(promo.total / TERM_MONTHS / 100) * 100;
+  const sched = generateSchedule(monthlyFinal, TERM_MONTHS, mode);
+  const full = monthlyFinal * TERM_MONTHS;
+  const saving = full - sched.totalWithPromo;
+  return {
+    mode, family: fam, promoCode: code, monthly: monthlyFinal,
+    rows: sched.rows, total: sched.totalWithPromo, full, saving,
+    pct: Math.round(saving / full * 100)
+  };
+}
+function computeOffer() {
+  const c = calc();
+  const rows = [
+    {label: 'Тариф', amount: c.tier.label, note: 'по сумме долга', kind: 'text'},
+    {label: 'Базовая стоимость', amount: c.basePrice, note: 'по прайсу'},
+    {label: 'Базовый платёж/мес', amount: c.baseMonthlyPayment, note: '₽'}
   ];
-  if (c.propertyProtect) {
-    rows.push(['Защита имущества', EXTRA_SERVICE_PRICES.propertyProtection, 'недвижимость, транспорт']);
-  }
-  if (c.business === 'ip' || c.business === 'ooo') {
-    rows.push(['ИП / ООО', 40000, 'влияет на процедуру']);
-  } else if (c.business === 'both') {
-    rows.push(['ИП + ООО', 80000, 'влияет на процедуру']);
-  }
-  if ($('#housingChk').checked) {
-    rows.push(['Сохранение жилья', EXTRA_SERVICE_PRICES.singleHousing, 'единственное жильё']);
-  }
-  rows.push(['ЕФРСБ публикации*', EXTRA_SERVICE_PRICES.efrsbPublications, 'обязательные']);
-  if (c.familyDiscountPercent > 0) {
-    rows.push(['Скидка «Семья-10%»', c.discountPercentRub, '−' + c.discountPercentRub.toLocaleString('ru-RU') + ' ₽']);
-  }
-  // Промокод в основной таблице
+  if (c.propertyProtect) rows.push({label: 'Защита имущества', amount: EXTRA_SERVICE_PRICES.propertyProtection, note: 'недвижимость, транспорт'});
+  if (c.business === 'ip' || c.business === 'ooo') rows.push({label: 'ИП / ООО', amount: 40000, note: 'влияет на процедуру'});
+  else if (c.business === 'both') rows.push({label: 'ИП + ООО', amount: 80000, note: 'влияет на процедуру'});
+  if ($('#housingChk').checked) rows.push({label: 'Сохранение жилья', amount: EXTRA_SERVICE_PRICES.singleHousing, note: 'единственное жильё'});
+  rows.push({label: 'ЕФРСБ публикации*', amount: EXTRA_SERVICE_PRICES.efrsbPublications, note: 'обязательные'});
+  if (c.familyDiscountPercent > 0) rows.push({label: 'Скидка «Семья-10%»', amount: c.discountPercentRub, note: '−' + c.discountPercentRub.toLocaleString('ru-RU') + ' ₽', kind: 'discount'});
   const promoActive = $('#promoCode').checked;
-  const promoResult = calcWithPromo(c.finalTotalStandard, promoActive);
-  if (promoActive) {
-    rows.push(['Промокод ЦИФРАТРИНАДЦАТЬ', promoResult.discount, '−13%']);
-  } else {
-    rows.push(['Промокод ЦИФРАТРИНАДЦАТЬ', 0, 'зачёркнуто']);
-  }
-  const mainTotal = promoResult.total;
-  const mainMonthly = Math.ceil(mainTotal / TERM_MONTHS / 100) * 100;
-  $('#sched').innerHTML = rows.map(r => '<tr><td>' + r[0] + '</td><td>' + fmt(r[1]) + '</td><td>' + r[2] + '</td></tr>').join('') +
-    '<tr class="sum"><td>Итоговый платёж/мес</td><td>' + fmt(mainMonthly) + '</td><td>' + TERM_MONTHS + ' мес.</td></tr>' +
-    '<tr class="sum"><td>Итого за срок</td><td>' + fmt(mainTotal) + '</td><td></td></tr>';
-  $('#plan').innerHTML = 'Ваш тарифный план: <b>' + c.tier.label + '</b>, срок ' + TERM_MONTHS + ' мес.';
-  $('#total').textContent = 'Итого: ' + fmt(mainTotal);
-  // Описание акции
+  const promo = calcWithPromo(c.finalTotalStandard, promoActive);
+  rows.push(promoActive
+    ? {label: 'Промокод', promo: true, amount: promo.discount, note: '−13%', kind: 'discount'}
+    : {label: 'Промокод', promo: true, amount: 0, note: 'зачёркнуто', kind: 'struck'});
+  return {
+    c, rows, promoActive,
+    total: promo.total,
+    monthly: Math.ceil(promo.total / TERM_MONTHS / 100) * 100,
+    p21: promoVariant('2+1', '#promo21Fam', '#promoCode21'),
+    p42: promoVariant('4+2', '#promo42Fam', '#promoCode42')
+  };
+}
+function renderPromoBlock(p, schedSel, totalSel) {
+  renderScheduleTable(schedSel, p.rows, p.total);
+  $(totalSel).innerHTML = 'Итого с акцией: ' + fmt(p.total) + '<div style="font-size:.8rem;color:var(--muted);font-weight:600">Выгода: ' + fmt(p.saving) + ' (' + p.pct + '%)</div>';
+}
+function render() {
+  const o = computeOffer();
+  $('#sched').innerHTML = o.rows.map(r => '<tr><td>' + r.label + (r.promo ? ' <span class="promo">' + PROMO_CODE + '</span>' : '') + '</td><td>' + (r.kind === 'text' ? r.amount : fmt(r.amount)) + '</td><td>' + r.note + '</td></tr>').join('') +
+    '<tr class="sum"><td>Итоговый платёж/мес</td><td>' + fmt(o.monthly) + '</td><td>' + TERM_MONTHS + ' мес.</td></tr>' +
+    '<tr class="sum"><td>Итого за срок</td><td>' + fmt(o.total) + '</td><td></td></tr>';
+  $('#plan').innerHTML = 'Ваш тарифный план: <b>' + o.c.tier.label + '</b>, срок ' + TERM_MONTHS + ' мес.';
+  $('#total').textContent = 'Итого: ' + fmt(o.total);
   $('#promoNote').hidden = !$('#famChk').checked;
-  // График 2+1
-  const c21 = calc(); c21.familyDiscountPercent = $('#promo21Fam').checked ? 10 : 0;
-  let totalBase21 = (c21.baseMonthlyPayment * TERM_MONTHS) + c21.costDop;
-  if ($('#promo21Fam').checked) totalBase21 -= Math.round(totalBase21 * 0.10);
-  const monthly21 = Math.ceil(totalBase21 / TERM_MONTHS / 100) * 100;
-  // Промокод для 2+1
-  const promo21 = calcWithPromo(monthly21 * TERM_MONTHS, $('#promoCode21').checked);
-  const monthly21Final = Math.ceil(promo21.total / TERM_MONTHS / 100) * 100;
-  const sched21 = generateSchedule(monthly21Final, TERM_MONTHS, '2+1');
-  const saving21 = (monthly21Final * TERM_MONTHS) - sched21.totalWithPromo;
-  const savingPct21 = Math.round(saving21 / (monthly21Final * TERM_MONTHS) * 100);
-  renderScheduleTable('#sched21', sched21.rows, sched21.totalWithPromo);
-  $('#total21').innerHTML = 'Итого с акцией: ' + fmt(sched21.totalWithPromo) + '<div style="font-size:.8rem;color:var(--muted);font-weight:600">Выгода: ' + fmt(saving21) + ' (' + savingPct21 + '%)</div>';
-  // График 4+2
-  const c42 = calc(); c42.familyDiscountPercent = $('#promo42Fam').checked ? 10 : 0;
-  let totalBase42 = (c42.baseMonthlyPayment * TERM_MONTHS) + c42.costDop;
-  if ($('#promo42Fam').checked) totalBase42 -= Math.round(totalBase42 * 0.10);
-  const monthly42 = Math.ceil(totalBase42 / TERM_MONTHS / 100) * 100;
-  // Промокод для 4+2
-  const promo42 = calcWithPromo(monthly42 * TERM_MONTHS, $('#promoCode42').checked);
-  const monthly42Final = Math.ceil(promo42.total / TERM_MONTHS / 100) * 100;
-  const sched42 = generateSchedule(monthly42Final, TERM_MONTHS, '4+2');
-  const saving42 = (monthly42Final * TERM_MONTHS) - sched42.totalWithPromo;
-  const savingPct42 = Math.round(saving42 / (monthly42Final * TERM_MONTHS) * 100);
-  renderScheduleTable('#sched42', sched42.rows, sched42.totalWithPromo);
-  $('#total42').innerHTML = 'Итого с акцией: ' + fmt(sched42.totalWithPromo) + '<div style="font-size:.8rem;color:var(--muted);font-weight:600">Выгода: ' + fmt(saving42) + ' (' + savingPct42 + '%)</div>';
+  renderPromoBlock(o.p21, '#sched21', '#total21');
+  renderPromoBlock(o.p42, '#sched42', '#total42');
 }
 /* Обработчики тоглов — пересчёт при переключении */
 $('#famChk').addEventListener('change', render);
@@ -768,40 +777,16 @@ $('#ckOk').addEventListener('click', () => { ck.classList.remove('on'); try { lo
 // Функции форматирования телефона уже объявлены выше (initPhone и т.д.)
 
 function buildSummary() {
-  const c = calc();
-  const c21 = calc(); c21.familyDiscountPercent = $('#promo21Fam').checked ? 10 : 0;
-  let tb21 = (c21.baseMonthlyPayment * TERM_MONTHS) + c21.costDop;
-  if ($('#promo21Fam').checked) tb21 -= Math.round(tb21 * 0.10);
-  const m21 = Math.ceil(tb21 / TERM_MONTHS / 100) * 100;
-  const promo21 = calcWithPromo(m21 * TERM_MONTHS, $('#promoCode21').checked);
-  const m21f = Math.ceil(promo21.total / TERM_MONTHS / 100) * 100;
-  const sched21 = generateSchedule(m21f, TERM_MONTHS, '2+1');
-
-  const c42 = calc(); c42.familyDiscountPercent = $('#promo42Fam').checked ? 10 : 0;
-  let tb42 = (c42.baseMonthlyPayment * TERM_MONTHS) + c42.costDop;
-  if ($('#promo42Fam').checked) tb42 -= Math.round(tb42 * 0.10);
-  const m42 = Math.ceil(tb42 / TERM_MONTHS / 100) * 100;
-  const promo42 = calcWithPromo(m42 * TERM_MONTHS, $('#promoCode42').checked);
-  const m42f = Math.ceil(promo42.total / TERM_MONTHS / 100) * 100;
-  const sched42 = generateSchedule(m42f, TERM_MONTHS, '4+2');
-
+  const o = computeOffer();
   return {
-    main: fmt(c.finalTotalStandard),
-    mainMonthly: fmt(c.finalMonthlyPayment),
-    tariff: c.tier.label,
+    main: fmt(o.total),
+    mainMonthly: fmt(o.monthly),
+    tariff: o.c.tier.label,
     debt: fmt(state.debt),
-    region: regEl.value,
-    marital: {married:'Состою в браке', single:'Холост/не замужем', divorced:'Разведён/разведена', widow:'Вдова/вдовец'}[val('marital')],
-    propertyProtect: val('propertyProtect') === 'yes' ? 'Да' : 'Нет',
-    business: {none:'Нет', ip:'Только ИП', ooo:'Только ООО', both:'ИП+ООО'}[val('business')],
-    deals3y: val('deals3y') === 'yes' ? 'Да' : 'Нет',
-    familyDiscount: $('#famChk').checked ? 'Да' : 'Нет',
-    singleHousing: $('#housingChk').checked ? 'Да' : 'Нет',
-    promo: $('#promoCode').checked ? 'Применён' : 'Не применён',
-    promo21_total: fmt(sched21.totalWithPromo),
-    promo21_saving: fmt((m21f * TERM_MONTHS) - sched21.totalWithPromo),
-    promo42_total: fmt(sched42.totalWithPromo),
-    promo42_saving: fmt((m42f * TERM_MONTHS) - sched42.totalWithPromo)
+    promo21_total: fmt(o.p21.total),
+    promo21_saving: fmt(o.p21.saving),
+    promo42_total: fmt(o.p42.total),
+    promo42_saving: fmt(o.p42.saving)
   };
 }
 
@@ -815,11 +800,11 @@ function buildSummary() {
     $('#pdfSummary').innerHTML = '<b>Ваш расчёт:</b><br>Основной тариф: ' + s.main + ' (' + s.mainMonthly + '/мес)<br>Акция 2+1: ' + s.promo21_total + ' (выгода ' + s.promo21_saving + ')<br>Акция 4+2: ' + s.promo42_total + ' (выгода ' + s.promo42_saving + ')';
     $('#dlgPdf').showModal();
   });
-  $('#pdfSend').addEventListener('click', () => {
+  $('#pdfSend').addEventListener('click', async () => {
+    btn.disabled = true;
     send({callbackPhone: phoneE164($('#pdfPhone')), debt: debtEl.value});
-    generatePDF();
-    $('#dlgPdf').close();
-    goal('pdf_downloaded');
+    if (await generatePDF()) { $('#dlgPdf').close(); goal('pdf_downloaded'); }
+    upd();
   });
 })();
 
@@ -839,59 +824,309 @@ function buildSummary() {
   });
 })();
 
-/* ========= Генерация PDF ========= */
-function generatePDF() {
-  const c = calc();
-  const c21 = calc(); c21.familyDiscountPercent = $('#promo21Fam').checked ? 10 : 0;
-  let tb21 = (c21.baseMonthlyPayment * TERM_MONTHS) + c21.costDop;
-  if ($('#promo21Fam').checked) tb21 -= Math.round(tb21 * 0.10);
-  const m21 = Math.ceil(tb21 / TERM_MONTHS / 100) * 100;
-  const promo21 = calcWithPromo(m21 * TERM_MONTHS, $('#promoCode21').checked);
-  const m21f = Math.ceil(promo21.total / TERM_MONTHS / 100) * 100;
-  const sched21 = generateSchedule(m21f, TERM_MONTHS, '2+1');
-
-  const c42 = calc(); c42.familyDiscountPercent = $('#promo42Fam').checked ? 10 : 0;
-  let tb42 = (c42.baseMonthlyPayment * TERM_MONTHS) + c42.costDop;
-  if ($('#promo42Fam').checked) tb42 -= Math.round(tb42 * 0.10);
-  const m42 = Math.ceil(tb42 / TERM_MONTHS / 100) * 100;
-  const promo42 = calcWithPromo(m42 * TERM_MONTHS, $('#promoCode42').checked);
-  const m42f = Math.ceil(promo42.total / TERM_MONTHS / 100) * 100;
-  const sched42 = generateSchedule(m42f, TERM_MONTHS, '4+2');
-
-  const promoActive = $('#promoCode').checked;
-
-  if (typeof jsPDF === 'undefined') {
-    window.print();
-    return;
+/* =====================================================================
+   PDF «Коммерческое предложение» (pdfmake, шрифт Roboto — кириллица и ₽)
+   ---------------------------------------------------------------------
+   ЧТО МЕНЯТЬ:
+   • Тексты, телефон, цвета, название файла  → PDF_CFG
+   • Порядок и состав блоков                 → PDF_LAYOUT (закомментируйте/переставьте строки)
+   • Внешний вид отдельного блока            → функции в PDF_BLOCKS
+   ===================================================================== */
+const PDF_CFG = {
+  fileName: 'kommercheskoe-predlozhenie',      // без .pdf, к имени добавится дата
+  title: 'Коммерческое предложение',
+  subtitle: 'Расчёт стоимости банкротства физического лица',
+  company: 'ООО «ЮРИСТ ДЛЯ НАРОДА»',            // организация (подвал)
+  partner: 'Артём Андреевич В.',                // имя партнёра (подвал)
+  phone: '8 (800) 333-89-13',
+  phoneNote: 'Бесплатная консультация',
+  footerBefore: 'Сообщите промокод',              // текст подвала: «…» [промокод] «…»
+  footerAfter: 'или имя партнёра:',
+  footerEnd: 'для получения максимальной скидки',
+  colors: {accent:'#e5384a', accentSoft:'#fdecee', text:'#14171c', muted:'#5d6572', line:'#e4e6ec', field:'#f4f5f7', white:'#ffffff'},
+  texts: {
+    sectionParams: 'Параметры расчёта',
+    sectionBreakdown: 'Детализация расчёта',
+    sectionPromos: 'Специальные акции',
+    promo21: 'Оплата 2 месяцев сразу, 1 месяц в конце — бесплатно. Итого 11 платежей вместо 14.',
+    promo42: 'Оплата 4 месяцев сразу, 2 месяца в конце — бесплатно. Итого 8 платежей вместо 14.',
+    familyNote: 'Скидка 10% предоставляется каждому клиенту при условии заключения двух договоров в одном календарном месяце. Заявление подаётся в суд в течение 14 дней при полном пакете документов.',
+    final: 'Рассчитанная стоимость услуг конечная и включает все расходы (при условии, что анкета заполнена верно).',
+    footnote: '* — цены могут незначительно меняться в зависимости от региона, указаны средние по РФ значения.'
   }
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
-  doc.setFont('helvetica');
+};
 
-  doc.setFontSize(18);
-  doc.text('Raschet stoimosti bankrotstva', 14, 20);
+/* ---- служебное ---- */
+const PC = PDF_CFG.colors;
+const yesNo = v => v ? 'Да' : 'Нет';
+/* В PDF все пробелы в суммах — неразрывные (узкий U+202F из toLocaleString шрифт не содержит) */
+const pdfMoney = n => fmt(n).replace(/[\s\u202F]/g, '\u00A0');
+const PAGE_W = 595.28, MARGIN = 40, CONTENT_W = PAGE_W - MARGIN * 2;
 
-  doc.setFontSize(11);
-  doc.text('Summa dolga: ' + fmt(state.debt), 14, 32);
-  doc.text('Region: ' + regEl.value, 14, 39);
-  doc.text('Semeinoe polozhenie: ' + ({married:'Sostoyu v braku', single:'Kholtost/ne zamuzhem', divorced:'Razvedyon/razvedena', widow:'Vdova/vdovec'}[val('marital')]), 14, 46);
-  doc.text('Zashchita imushchestva: ' + (val('propertyProtect') === 'yes' ? 'Da' : 'Net'), 14, 53);
-  doc.text('IP/OOO: ' + ({none:'Net', ip:'Tol' + String.fromCharCode(1050) + 'ko IP', ooo:'Tol' + String.fromCharCode(1050) + 'ko OOO', both:'IP+OOO'}[val('business')]), 14, 60);
-  doc.text('Sdelki za 3 goda: ' + (val('deals3y') === 'yes' ? 'Da' : 'Net'), 14, 67);
-  doc.text('Promokod: ' + (promoActive ? 'Primyon' : 'Ne primyon'));
+const pdfLayouts = {
+  /* таблица со светлыми линиями и зеброй; шапка залита акцентом */
+  table: {
+    hLineWidth: (i, n) => (i === 0 || i === n.table.body.length) ? 0 : 0.5,
+    vLineWidth: () => 0, hLineColor: () => PC.line,
+    paddingLeft: () => 8, paddingRight: () => 8, paddingTop: () => 5, paddingBottom: () => 5,
+    fillColor: i => i === 0 ? PC.accent : (i % 2 === 0 ? PC.field : null)
+  },
+  /* компактный вариант для графиков платежей */
+  compact: {
+    hLineWidth: (i, n) => (i === 0 || i === n.table.body.length) ? 0 : 0.5,
+    vLineWidth: () => 0, hLineColor: () => PC.line,
+    paddingLeft: () => 6, paddingRight: () => 6, paddingTop: () => 3, paddingBottom: () => 3,
+    fillColor: i => i === 0 ? PC.accent : (i % 2 === 0 ? PC.field : null)
+  },
+  /* список «параметр — значение» без шапки */
+  list: {
+    hLineWidth: (i, n) => i === n.table.body.length ? 0 : 0.5,
+    vLineWidth: () => 0, hLineColor: () => PC.line,
+    paddingLeft: () => 0, paddingRight: () => 10, paddingTop: () => 5, paddingBottom: () => 5
+  },
+  /* карточки-«плитки» с белым зазором между ними */
+  cards: {
+    hLineWidth: () => 0, vLineWidth: () => 8, vLineColor: () => PC.white,
+    paddingLeft: () => 12, paddingRight: () => 12, paddingTop: () => 10, paddingBottom: () => 10
+  },
+  /* промокод в рамке (прямоугольник фирменного цвета) */
+  chip: {
+    hLineWidth: () => 1, vLineWidth: () => 1, hLineColor: () => PC.accent, vLineColor: () => PC.accent,
+    paddingLeft: () => 5, paddingRight: () => 5, paddingTop: () => 1.5, paddingBottom: () => 1.5
+  },
+  chipMuted: {
+    hLineWidth: () => 1, vLineWidth: () => 1, hLineColor: () => PC.muted, vLineColor: () => PC.muted,
+    paddingLeft: () => 5, paddingRight: () => 5, paddingTop: () => 1.5, paddingBottom: () => 1.5
+  },
+  /* плашка с цветной полосой слева */
+  note: {
+    hLineWidth: () => 0, vLineWidth: i => i === 0 ? 3 : 0, vLineColor: () => PC.accent,
+    paddingLeft: () => 12, paddingRight: () => 12, paddingTop: () => 9, paddingBottom: () => 9
+  }
+};
 
-  doc.autoTable({
-    startY: 75,
-    head: [['Pozitsiya', 'Summa', 'Primечание']],
-    body: [
-      ['Tarif', c.tier.label, 'po summe dolga'],
-      ['Bazovaya stoimost', fmt(c.basePrice), 'po praisu'],
-      ['Bazovyi platezh/mes', fmt(c.baseMonthlyPayment), 'rub'],
-    ],
-    theme: 'grid'
-  });
+/* промокод в красной рамке; muted=true — серый зачёркнутый (промокод не применён) */
+const pdfChip = (muted, size) => ({
+  width: 'auto',
+  table: {body: [[{text: PROMO_CODE, bold: true, fontSize: size || 8.5, color: muted ? PC.muted : PC.accent, decoration: muted ? 'lineThrough' : undefined}]]},
+  layout: muted ? pdfLayouts.chipMuted : pdfLayouts.chip
+});
+const th = (text, alignment) => ({text, bold: true, color: PC.white, fontSize: 8.5, alignment});
+const sectionTitle = text => ({
+  stack: [
+    {text, fontSize: 12, bold: true, color: PC.text},
+    {canvas: [{type: 'line', x1: 0, y1: 4, x2: CONTENT_W, y2: 4, lineWidth: 1.5, lineColor: PC.accent}]}
+  ],
+  margin: [0, 18, 0, 8], unbreakable: true
+});
 
-  doc.save('raschet_bankrotstva.pdf');
+/* ---- блоки шаблона: каждый получает данные d и возвращает фрагмент разметки pdfmake ---- */
+const PDF_BLOCKS = {
+  /* ключевые цифры — три плитки */
+  keyFigures: d => {
+    const card = (label, value, sub, soft) => ({
+      fillColor: soft ? PC.accentSoft : PC.field,
+      stack: [
+        {text: label, fontSize: 8.5, color: PC.muted},
+        {text: value, fontSize: 16, bold: true, color: soft ? PC.accent : PC.text, margin: [0, 3, 0, 0]},
+        {text: sub || ' ', fontSize: 8, color: PC.muted, margin: [0, 2, 0, 0]}
+      ]
+    });
+    return {
+      table: {widths: ['*', '*', '*'], body: [[
+        card('Сумма долга', pdfMoney(d.debt), d.o.c.tier.label),
+        card('Платёж в месяц', pdfMoney(d.o.monthly), 'срок ' + TERM_MONTHS + ' мес.'),
+        card('Итого за весь срок', pdfMoney(d.o.total), d.o.promoActive ? 'с учётом промокода' : '', true)
+      ]]},
+      layout: pdfLayouts.cards, margin: [-8, 0, -8, 0]
+    };
+  },
+
+  /* параметры клиента — два столбца «параметр / значение» */
+  params: d => {
+    const p = d.params, body = [];
+    for (let i = 0; i < p.length; i += 2) {
+      const a = p[i], b = p[i + 1] || ['', ''];
+      body.push([
+        {text: a[0], color: PC.muted, fontSize: 9}, typeof a[1] === 'string' ? {text: a[1], bold: true, fontSize: 9.5} : a[1],
+        {text: b[0], color: PC.muted, fontSize: 9}, typeof b[1] === 'string' ? {text: b[1], bold: true, fontSize: 9.5} : b[1]
+      ]);
+    }
+    return [
+      sectionTitle(PDF_CFG.texts.sectionParams),
+      {table: {widths: [105, '*', 105, '*'], body}, layout: pdfLayouts.list}
+    ];
+  },
+
+  /* детализация основного тарифа */
+  breakdown: d => {
+    const body = [[th('Позиция'), th('Сумма', 'right'), th('Примечание')]];
+    d.o.rows.forEach(r => {
+      if (r.kind === 'text')     body.push([r.label, {text: r.amount, alignment: 'right', bold: true}, {text: r.note, color: PC.muted}]);
+      else if (r.kind === 'discount') body.push([r.promo ? {columns: [{text: r.label, width: 'auto'}, pdfChip(false)], columnGap: 6} : r.label, {text: '−' + pdfMoney(r.amount), alignment: 'right', bold: true, color: PC.accent}, {text: r.note, color: PC.muted}]);
+      else if (r.kind === 'struck')    body.push([{columns: [{text: r.label, width: 'auto', color: PC.muted}, pdfChip(true)], columnGap: 6}, {text: '—', alignment: 'right', color: PC.muted}, {text: 'не применён', color: PC.muted}]);
+      else body.push([r.label, {text: pdfMoney(r.amount), alignment: 'right', bold: true}, {text: r.note === '₽' ? '' : r.note, color: PC.muted}]);
+    });
+    const sum = (a, b, c) => [
+      {text: a, bold: true, fillColor: PC.accentSoft}, {text: b, bold: true, alignment: 'right', fillColor: PC.accentSoft, color: PC.accent},
+      {text: c, color: PC.muted, fillColor: PC.accentSoft}
+    ];
+    body.push(sum('Итоговый платёж в месяц', pdfMoney(d.o.monthly), TERM_MONTHS + ' мес.'));
+    body.push(sum('Итого за срок', pdfMoney(d.o.total), ''));
+    return [
+      sectionTitle(PDF_CFG.texts.sectionBreakdown),
+      {table: {headerRows: 1, dontBreakRows: true, widths: ['*', 95, 150], body}, layout: pdfLayouts.table, fontSize: 9.5}
+    ];
+  },
+
+  /* акции 2+1 и 4+2 рядом */
+  promos: d => {
+    const one = (p, name, desc) => {
+      const body = [[th('Месяц'), th('Платёж', 'right'), th('Статус')]];
+      p.rows.forEach(r => {
+        const dim = r.status !== 'Ежемесячно';
+        body.push([
+          {text: r.month + ' мес.', color: dim ? PC.muted : PC.text},
+          {text: r.payment > 0 ? pdfMoney(r.payment) : '—', alignment: 'right', bold: !dim, color: dim ? PC.muted : PC.text},
+          {text: r.status, color: r.status === 'Оплачено сразу' ? PC.accent : PC.muted, bold: r.status === 'Оплачено сразу'}
+        ]);
+      });
+      return {width: '*', stack: [
+        {text: 'Акция «' + name + '»', fontSize: 11, bold: true},
+        {text: desc, fontSize: 8.5, color: PC.muted, margin: [0, 2, 0, 6]},
+        {table: {headerRows: 1, widths: [42, 62, '*'], body}, layout: pdfLayouts.compact, fontSize: 8.5},
+        {
+          table: {widths: ['*'], body: [[{stack: [
+            {text: [{text: 'Итого с акцией: ', color: PC.muted}, {text: pdfMoney(p.total), bold: true, fontSize: 12}]},
+            {text: 'Выгода: ' + pdfMoney(p.saving) + ' (' + p.pct + '%)', bold: true, color: PC.accent, fontSize: 9, margin: [0, 2, 0, 0]}
+          ], fillColor: PC.accentSoft}]]},
+          layout: pdfLayouts.cards, margin: [-8, 6, -8, 0]
+        }
+      ]};
+    };
+    /* заголовок и обе таблицы — одним неразрывным блоком, чтобы заголовок не оставался один внизу страницы */
+    return {unbreakable: true, stack: [
+      sectionTitle(PDF_CFG.texts.sectionPromos),
+      {columns: [one(d.o.p21, '2+1', PDF_CFG.texts.promo21), one(d.o.p42, '4+2', PDF_CFG.texts.promo42)], columnGap: 18}
+    ]};
+  },
+
+  /* примечания */
+  notes: d => {
+    const t = PDF_CFG.texts, lines = [];
+    lines.push({text: [
+      {text: 'Дополнительные расходы*: ', bold: true},
+      'нотариальная доверенность — ', {text: pdfMoney(NOTARY) + '*', bold: true},
+      ', депозит арбитражного управляющего — ', {text: pdfMoney(COURT_DEPOSIT) + '*', bold: true},
+      '. Не входят в график платежей, оплачиваются отдельно.'
+    ]});
+    if ($('#famChk').checked) lines.push({text: t.familyNote, margin: [0, 5, 0, 0]});
+    lines.push({text: t.final, margin: [0, 5, 0, 0]});
+    return {
+      table: {widths: ['*'], body: [[{stack: lines, fillColor: PC.field, fontSize: 8.5, color: PC.text, lineHeight: 1.25}]]},
+      layout: pdfLayouts.note, margin: [0, 18, 0, 0], unbreakable: true
+    };
+  },
+
+  footnote: () => ({text: PDF_CFG.texts.footnote, fontSize: 8, color: PC.muted, margin: [0, 8, 0, 0]})
+};
+
+/* Порядок блоков в документе: можно переставлять и отключать */
+const PDF_LAYOUT = ['keyFigures', 'params', 'breakdown', 'promos', 'notes', 'footnote'];
+
+/* ---- сборка документа ---- */
+function buildOfferDoc(d) {
+  const content = PDF_LAYOUT.map(k => PDF_BLOCKS[k](d));
+  return {
+    info: {title: PDF_CFG.title, subject: PDF_CFG.subtitle},
+    pageSize: 'A4',
+    pageMargins: [MARGIN, 40, MARGIN, 82],
+    defaultStyle: {font: 'Roboto', fontSize: 10, color: PC.text, lineHeight: 1.15},
+    /* шапка: на 1-й странице — цветная плашка с заголовком, дальше — тонкая полоса */
+    background: page => page === 1
+      ? {stack: [
+          {canvas: [{type: 'rect', x: 0, y: 0, w: PAGE_W, h: 98, color: PC.accent}]},
+          {columns: [
+            {width: '*', stack: [
+              {text: PDF_CFG.title.toUpperCase(), fontSize: 21, bold: true, color: PC.white},
+              {text: PDF_CFG.subtitle, fontSize: 10.5, color: '#ffe3e6', margin: [0, 4, 0, 0]}
+            ]},
+            {width: 'auto', alignment: 'right', fontSize: 9, color: '#ffe3e6', margin: [0, 0, MARGIN, 0], stack: [
+              {text: 'Дата расчёта'}, {text: d.date, bold: true, color: PC.white, fontSize: 11}
+            ]}
+          ], absolutePosition: {x: MARGIN, y: 28}}
+        ]}
+      : {canvas: [{type: 'rect', x: 0, y: 0, w: PAGE_W, h: 6, color: PC.accent}]},
+    content: [{text: '', margin: [0, 64, 0, 0]}, ...content.flat()],
+    footer: (page, pages) => ({
+      margin: [MARGIN, 12, MARGIN, 0], fontSize: 8.5, color: PC.muted,
+      stack: [
+        {text: [PDF_CFG.phoneNote + ': ', {text: PDF_CFG.phone, bold: true, color: PC.text, fontSize: 10}]},
+        {columns: [
+          {text: PDF_CFG.footerBefore, width: 'auto'}, pdfChip(false, 8.5),
+          {text: [PDF_CFG.footerAfter + ' ', {text: PDF_CFG.partner, bold: true, color: PC.text}, ' ' + PDF_CFG.footerEnd], width: '*'}
+        ], columnGap: 4, margin: [0, 4, 0, 0]},
+        {columns: [
+          {text: PDF_CFG.company, bold: true, color: PC.text, width: '*'},
+          {text: 'Стр. ' + page + ' из ' + pages, width: 'auto', alignment: 'right'}
+        ], margin: [0, 4, 0, 0]}
+      ]
+    })
+  };
+}
+
+/* данные для шаблона (единственное место, где PDF читает состояние страницы) */
+function collectPdfData() {
+  const o = computeOffer();
+  return {
+    date: new Date().toLocaleDateString('ru-RU'),
+    debt: state.debt,
+    o,
+    params: [
+      ['Регион', regEl.value || '—'],
+      ['Семейное положение', MARITAL_LABEL[val('marital')] || '—'],
+      ['Защита имущества', yesNo(val('propertyProtect') === 'yes')],
+      ['ИП / ООО', BUSINESS_LABEL[val('business')] || '—'],
+      ['Сделки за 3 года', yesNo(val('deals3y') === 'yes')],
+      ['Сохранение жилья', yesNo($('#housingChk').checked)],
+      ['Семейная скидка', yesNo($('#famChk').checked) + (($('#famChk').checked) ? ' (−10%)' : '')],
+      ['Промокод', o.promoActive ? {columns: [pdfChip(false, 8)]} : 'Не применён']
+    ]
+  };
+}
+
+/* ---- загрузка библиотеки (основной CDN → запасной) ---- */
+const PDF_LIBS = [
+  ['https://cdn.jsdelivr.net/npm/pdfmake@0.2.12/build/pdfmake.min.js', 'https://cdn.jsdelivr.net/npm/pdfmake@0.2.12/build/vfs_fonts.js'],
+  ['https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.12/pdfmake.min.js', 'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.12/vfs_fonts.js']
+];
+const loadScript = src => new Promise((ok, fail) => {
+  const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = () => fail(new Error('load ' + src));
+  document.head.appendChild(s);
+});
+const pdfReady = () => !!(window.pdfMake && window.pdfMake.vfs && window.pdfMake.createPdf);
+async function ensurePdfMake() {
+  if (pdfReady()) return;
+  for (const [lib, fonts] of PDF_LIBS) {
+    try { if (!window.pdfMake) await loadScript(lib); if (!pdfReady()) await loadScript(fonts); if (pdfReady()) return; } catch (e) { /* пробуем следующий CDN */ }
+  }
+  throw new Error('pdfmake not loaded');
+}
+
+/* ---- выгрузка ---- */
+async function generatePDF() {
+  const err = $('#pdfErr'); err.textContent = '';
+  try {
+    await ensurePdfMake();
+    const doc = buildOfferDoc(collectPdfData());
+    const t = new Date(), p = n => String(n).padStart(2, '0');
+    window.pdfMake.createPdf(doc).download(PDF_CFG.fileName + '-' + t.getFullYear() + p(t.getMonth() + 1) + p(t.getDate()) + '.pdf');
+    return true;
+  } catch (e) {
+    console.error('PDF error:', e);
+    err.textContent = 'Не удалось сформировать PDF. Проверьте подключение к интернету и попробуйте ещё раз.';
+    return false;
+  }
 }
 
 /* ========= Семейная скидка автоактивация ========= */
